@@ -1,0 +1,21 @@
+GRCh37:
+  assembly: GRCh37/hg19
+  arm_reference_source: institutional GRCh37 reference used by the derivation workflow
+  coordinate_convention: zero-based half-open internally
+GRCh38:
+  assembly: GRCh38/hg38
+  arm_reference_source: UCSC hg38 cytoBand and chromInfo tables
+  source_urls:
+    - https://hgdownload.soe.ucsc.edu/goldenPath/hg38/database/cytoBand.txt.gz
+    - https://hgdownload.soe.ucsc.edu/goldenPath/hg38/database/chromInfo.txt.gz
+  coordinate_convention: zero-based half-open internally
+hotspots:
+  status: locked derivation-cohort research asset
+  note: normalized arm-relative windows; never recomputed from a scoring cohort
+Zarrei_DGV:
+  bundled: false
+  expected_filename: nat_rev_gen_human_normal_cnv.xlsx
+  derivation_reference_sha256: f06e3b600b77373bd2fc72be0c8dd2c49eb299824d7148a5c11761af51ff6ad0
+  note: >
+    Redistribution rights were not assumed. Users must obtain the reference
+    from its licensed source and verify its checksum before V6 audit use.

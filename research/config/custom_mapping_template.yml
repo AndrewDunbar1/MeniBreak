@@ -1,0 +1,7 @@
+columns:
+  sample_id: your_sample_column
+  chromosome: your_chromosome_column
+  start: your_start_column
+  end: your_end_column
+  event: your_event_column
+coordinate_system: zero_based_half_open

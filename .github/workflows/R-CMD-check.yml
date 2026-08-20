@@ -8,9 +8,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     env:
-      # Sequential installation avoids a known transactional race when
-      # openxlsx and zip are restored together on a fresh Linux runner.
+      # A non-transactional, sequential restore lets zip become available
+      # before openxlsx is validated on a fresh Linux runner.
       RENV_CONFIG_INSTALL_JOBS: "1"
+      RENV_CONFIG_INSTALL_TRANSACTIONAL: "FALSE"
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2

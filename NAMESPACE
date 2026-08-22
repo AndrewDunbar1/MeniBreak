@@ -1,4 +1,6 @@
 export(extract_features)
+export(extract_hotlist_features)
+export(extract_breakpoint_candidates)
 export(freeze_selected_model)
 export(inspect_segments)
 export(model_info)

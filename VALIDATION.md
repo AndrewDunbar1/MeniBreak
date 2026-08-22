@@ -1,5 +1,9 @@
 # Validation record
 
+This file describes the locked `mbpr-derivation-v1` model only. The dynamic
+top-eight outcome-linked workflow and the nine-window stability shortlist are
+separate analyses and have no frozen coefficients.
+
 ## Frozen gates
 
 - Legacy reproduction: passed, 1,273 overlapping tumors, 57 features,

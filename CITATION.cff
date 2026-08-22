@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use mbpr, please cite this software and the associated manuscript."
 title: "mbpr: deterministic SEG-to-recurrence research software"
 type: software
-version: 0.1.0
-date-released: 2026-07-26
+version: 0.1.1
+date-released: 2026-08-22
 authors:
   - family-names: Dunbar
     given-names: Andrew R.

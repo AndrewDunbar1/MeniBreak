@@ -1,0 +1,10 @@
+feature_id,source_feature,arm_key,start_fraction_tel_to_cent,end_fraction_tel_to_cent,grch37_start_mb,grch37_end_mb,selection_fraction_3y,selection_fraction_5y,selection_fraction_7y
+hotlist_1p_090_095,bp_1p_bin19,1p,0.90,0.95,112.50,118.75,1.00,,0.44
+hotlist_1p_095_100,bp_1p_bin20,1p,0.95,1.00,118.75,125.00,0.96,0.88,0.92
+hotlist_6q_090_095,bp_6q_bin19,6q,0.90,0.95,66.51,72.01,1.00,0.64,
+hotlist_6q_095_100,bp_6q_bin20,6q,0.95,1.00,61.00,66.51,0.40,,0.68
+hotlist_19q_050_055,bp_19q_bin11,19q,0.50,0.55,41.18,42.81,,0.80,0.68
+hotlist_19q_045_050,bp_19q_bin10,19q,0.45,0.50,42.81,44.45,,0.72,
+hotlist_2p_075_080,bp_2p_bin16,2p,0.75,0.80,69.97,74.64,,0.76,
+hotlist_4p_095_100,bp_4p_bin20,4p,0.95,1.00,47.88,50.40,0.44,,
+hotlist_3p_050_055,bp_3p_bin11,3p,0.50,0.55,45.50,50.05,,,0.40

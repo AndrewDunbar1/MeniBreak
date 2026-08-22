@@ -41,3 +41,7 @@ present it is used as the clustered bootstrap unit.
 
 At each horizon, recurrence on or before the horizon is an event, event-free
 follow-up through the horizon is a non-event, and earlier censoring is excluded.
+
+For the hotlist workflow, optional recorded comparators are `who_grade` and
+`integrated_grade`. Do not reconstruct integrated grade. Optional clinical
+augmentation requires `age`, `mitoses`, `gtr`, `prior_rt`, and `adj_rt`.

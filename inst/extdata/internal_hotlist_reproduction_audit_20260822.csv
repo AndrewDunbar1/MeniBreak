@@ -1,0 +1,13 @@
+cohort,horizon_years,model,document_auc,reproduced_auc,absolute_difference,status
+broad,3,Recorded WHO grade,0.690,0.6897023809523809,0.0002976190476191,reproduced_rounding
+broad,5,Recorded WHO grade,0.656,0.6555755728011825,0.0004244271988175,reproduced_rounding
+broad,7,Recorded WHO grade,0.635,0.6345462434911976,0.0004537565088024,reproduced_rounding
+broad,3,Prespecified integrated grade,0.766,0.7659383753501401,0.0000616246498599,reproduced_rounding
+broad,5,Prespecified integrated grade,0.735,0.7354582409460458,0.0004582409460458,reproduced_rounding
+broad,7,Prespecified integrated grade,0.733,0.7332630795933548,0.0002630795933548,reproduced_rounding
+broad,3,Fixed nine-window hotlist,0.702,0.7134712885154062,0.0114712885154062,not_reproduced
+broad,5,Fixed nine-window hotlist,0.735,0.7107058388765706,0.0242941611234294,not_reproduced
+broad,7,Fixed nine-window hotlist,0.752,0.7109495102901067,0.0410504897098933,not_reproduced
+broad,3,Clinical plus fixed nine-window hotlist,0.836,0.8393690476190476,0.0033690476190476,not_reproduced
+broad,5,Clinical plus fixed nine-window hotlist,0.830,0.8126843126385809,0.0173156873614191,not_reproduced
+broad,7,Clinical plus fixed nine-window hotlist,0.819,0.7937019588395735,0.0252980411604265,not_reproduced

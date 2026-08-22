@@ -1,0 +1,7 @@
+cohort,horizon_years,n,events,who_grade_auc,integrated_grade_auc,arm_scna_auc,dynamic_top8_auc,scna_plus_dynamic_top8_auc,status
+Broad,3,904,204,0.690,0.766,0.777,0.702,0.780,historical_unverified_internally_inconsistent
+Broad,5,674,264,0.656,0.735,0.766,0.735,0.797,historical_unverified_internally_inconsistent
+Broad,7,514,296,0.635,0.733,0.767,0.752,0.797,historical_unverified_internally_inconsistent
+Restricted transport,3,387,22,0.686,0.827,0.796,0.715,0.804,historical_unverified_internally_inconsistent
+Restricted transport,5,248,37,0.647,0.782,0.766,0.753,0.847,historical_unverified_internally_inconsistent
+Restricted transport,7,155,43,0.622,0.752,0.740,0.757,0.812,historical_unverified_internally_inconsistent

@@ -1,104 +1,93 @@
 # MeniBreak
 
-MeniBreak is deterministic, local research software that converts segment-level
-copy-number data into locked meningioma SCNA-plus-breakpoint features and
-recurrence predictions. The R package and command-line executable are named
-`mbpr` for compatibility with the frozen model and existing manifests.
+MeniBreak is a research toolkit for testing whether the location and geometry
+of copy-number breakpoints improve meningioma recurrence prediction. The repo
+is intentionally ordered like the MeniBreak scientific narrative:
 
-The package is research-use-only. It is not a diagnostic device and must not be
-used for grading, treatment selection, radiotherapy recommendations, or patient
-management. No data leave the machine, and no LLM is involved in normalization,
-feature extraction, QC, or scoring.
+1. reproduce the outcome-linked dynamic top-eight procedure;
+2. evaluate the stronger scale-free breakpoint-geometry definition;
+3. test the nine-window stability shortlist in an external cohort;
+4. compare breakpoint models with WHO grade and prespecified integrated grade;
+5. measure what breakpoints add beyond SCNA;
+6. examine grade-discordant reclassification; and
+7. validate the full locked SEG-to-score model.
 
-## Release status
+**Start at [`START_HERE.md`](START_HERE.md).** It identifies the correct command,
+inputs, output, model status, and interpretation for each stage. Machine readers
+should use [`MODEL_INDEX.yml`](MODEL_INDEX.yml) as the authoritative registry.
 
-Version 0.1.0 contains the checksum-locked `mbpr-derivation-v1` model. Exact
-legacy reproduction passed, and the prespecified 2×2 bakeoff selected portable
-legacy preprocessing with a 30% arm threshold. Five-year recurrence is the
-primary output; three- and seven-year estimates are secondary.
+The recovered historical six-AUC table is not execution-reproduced and is
+internally inconsistent with its stated candidate count, top-k description,
+and stability table. The provenance audit is in
+[`docs/09_INTERNAL_REPRODUCTION_AUDIT.md`](docs/09_INTERNAL_REPRODUCTION_AUDIT.md).
 
-This is a research release for external validation. Absolute probabilities are
-internally calibrated and provisional.
-
-## Installation
-
-### R
-
-```sh
-Rscript -e 'install.packages("renv"); renv::restore()'
-R CMD INSTALL .
-```
-
-### Docker
+## Outcome-linked dynamic top-eight workflow
 
 ```sh
-docker build -t menibreak:0.1.0 .
-docker run --rm menibreak:0.1.0 model-info
+./mbpr top8-candidates --segments cohort.seg --format auto \
+  --genome-build GRCh37 --output-dir top8_candidates
+
+python3 workflows/01_dynamic_top8_validation/run_validation.py \
+  --features top8_candidates/breakpoint_candidates.csv \
+  --outcomes outcomes.csv --output-dir top8_validation
 ```
 
-## Minimal event-called input
+The top eight are selected anew inside every training fold. This is a faithful
+implementation of the narrative recipe, but it does not reproduce the old Word
+report's complete AUC table and is not a fixed score for outcome-free samples.
 
-```text
-sample_id,chromosome,start,end,event
-SAMPLE_001,1,1000000,50000000,loss
-SAMPLE_001,22,16000000,50000000,gain
+## Strongest freshly reproduced breakpoint-only analysis
+
+The scale-free geometry model uses 56 fixed, normalized summaries of breakpoint
+dispersion, concentration, arm-relative position, and loss/gain route shape.
+Under ten repeats of nested patient-grouped validation, broad-cohort AUC was
+0.764, 0.769, and 0.755 at 3, 5, and 7 years. Restricted-transport AUC was
+0.715, 0.747, and 0.722. This is the strongest freshly reproduced
+breakpoint-only internal definition, but remains exploratory rather than a
+locked external predictor. See
+[`docs/10_BREAKPOINT_ONLY_MODEL_COMPARISON.md`](docs/10_BREAKPOINT_ONLY_MODEL_COMPARISON.md).
+
+## Fastest Heidelberg workflow: stability shortlist
+
+```sh
+./mbpr hotlist-extract --segments cohort.seg --format auto \
+  --genome-build GRCh37 --output-dir hotlist_results
+
+Rscript workflows/01_hotlist_validation/run_validation.R \
+  hotlist_results/hotlist_features.csv outcomes.csv hotlist_validation
 ```
 
-The genome build (`GRCh37` or `GRCh38`) is mandatory and never guessed.
-Supported events include loss, gain, homozygous/deep loss, high-copy
-gain/amplification, LOH, and allelic imbalance. The latter two are retained for
-QC and excluded from the loss/gain scoring features.
+This tests the nine regions that were selected most consistently by the dynamic
+procedure. They should initially be reported individually. The dynamic model's
+AUCs must not be assigned to their union.
 
-## Local CLI
+## Full locked model
 
 ```sh
 ./mbpr inspect --segments cohort.seg --format auto --genome-build GRCh37
-./mbpr score --segments cohort.seg --format nexus_event \
-  --genome-build GRCh37 --output-dir results
-./mbpr validate --predictions results/predictions.csv \
-  --outcomes outcomes.csv --output-dir validation
-./mbpr model-info
-./mbpr schema-template --output-dir examples
+./mbpr score --segments cohort.seg --format auto \
+  --genome-build GRCh37 --output-dir locked_scores
+./mbpr validate --predictions locked_scores/predictions.csv \
+  --outcomes outcomes.csv --output-dir locked_validation
 ```
 
-Continuous segment-mean formats require an explicit, versioned caller profile.
-Custom thresholds are supported but are marked custom/unvalidated
-preprocessing. Scoring never guesses a caller threshold or genome build.
+The locked model is `mbpr-derivation-v1`: 44 SCNA features plus 18 breakpoint
+architecture features. Five-year recurrence is primary; 3- and 7-year outputs
+are secondary. Its probabilities are internally calibrated and provisional.
 
-Event-called external data are the fully supported v0.1.0 path. For continuous
-segments, the caller profile must also declare whether coordinates are
-zero-based half-open or one-based inclusive.
+## Repository map
 
-## R interface
+- [`docs/`](docs/): the scientific story and exact analysis contracts, in order.
+- [`workflows/01_hotlist_validation/`](workflows/01_hotlist_validation/): the
+  self-contained first external-validation workflow.
+- [`R/`](R/), [`inst/`](inst/), [`mbpr`](mbpr): supported package and CLI.
+- [`archive/method-development/`](archive/method-development/): BISCUT,
+  TRISCUT, geometry, and other method-development analyses. These are retained
+  for auditability but are not part of the shortest collaborator path.
 
-```r
-library(mbpr)
-x <- normalize_segments("cohort.seg", format = "nexus_event",
-                        genome_build = "GRCh37")
-f <- extract_features(x, preprocess = "legacy", arm_threshold = 30)
-inspect_segments("cohort.seg", genome_build = "GRCh37")
-```
-
-See the [input specification](INPUT_SPEC.md), [model card](MODEL_CARD.md), and
-[external-validation guide](VALIDATION.md).
-
-## Research analyses
-
-The [`research/`](research/) directory documents the report-readable hotspot
-model, compact six-rule hotlist, scale-free geometry features, BISCUT-inspired
-peak selection, TRISCUT-inspired engineering, harmonized grade comparators, and
-clinical-integrated sensitivity analyses. It contains scripts and aggregate
-results only—no institutional raw data, linkage keys, or sample-level outputs.
-
-These analyses are reproducibility resources, not alternative production
-interfaces. External laboratories should use the locked `mbpr score` workflow
-for primary validation.
-
-## Reproducibility
-
-Dependencies are pinned in `renv.lock`. The container is designed to run
-without network access after it is built. `run_manifest.json` records the input,
-model, reference, and software checksums for every scoring run.
+No institutional raw data, sample-level outcomes, linkage keys, or PHI are
+included. The software is research-use-only and is not for diagnosis, grading,
+treatment selection, or patient management.
 
 Before publishing changes, run:
 
@@ -107,7 +96,4 @@ R_PROFILE_USER=/dev/null Rscript tests/smoke.R
 ./tools/audit_no_phi.sh
 ```
 
-## License and citation
-
-Code is released under Apache-2.0. Cite the software using [`CITATION.cff`](CITATION.cff).
-The software is for research use only and is not intended for clinical decisions.
+Code is released under Apache-2.0. See [`CITATION.cff`](CITATION.cff).

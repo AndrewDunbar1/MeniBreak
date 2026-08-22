@@ -4,6 +4,7 @@
 ^mbpr\.Rcheck$
 ^mbpr_[0-9.]+\.tar\.gz$
 ^analysis$
+^audits$
 ^Dockerfile$
 ^\.dockerignore$
 ^mbpr$
@@ -12,7 +13,11 @@
 ^LICENSE\.md$
 ^NOTICE$
 ^tests/compare_native_docker\.sh$
-^research$
+^archive$
+^workflows$
+^docs$
+^START_HERE\.md$
+^MODEL_INDEX\.yml$
 ^examples$
 ^tools$
 ^CONTRIBUTING\.md$

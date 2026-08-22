@@ -12,6 +12,22 @@ GRCh38:
 hotspots:
   status: locked derivation-cohort research asset
   note: normalized arm-relative windows; never recomputed from a scoring cohort
+hotlist_v1:
+  status: descriptive stability shortlist; not the dynamic fitted model
+  asset: hotlist_v1.csv
+  sha256: 0a7d50349a62f2f019bb1ab377ff5967b00a7fb48298b692b5623f63a91aea7a
+  coordinate_system: arm-relative telomere-to-centromere
+  note: nine unique 5-percent windows selected in at least 40 percent of folds at one or more horizons
+dynamic_top8_historical_benchmark:
+  status: recovered historical values; internally inconsistent and unverified
+  asset: historical_dynamic_top8_benchmark.csv
+  sha256: 3177fbea8497e7499c8cc7f83fd946c10a11bc20ac0e932aa94b6bf0a4d07dfe
+  note: preserve for provenance only; do not present as reproduced results
+internal_breakpoint_only_benchmark:
+  status: fresh internal execution summary
+  asset: internal_breakpoint_only_benchmark_20260822.csv
+  sha256: 32df22ed5def6b1f0c9c9927cc21c7863dfd6f1153428503ee2a9f21ce23b998
+  note: distinguishes literal dynamic top-eight, native-R reconstruction, and scale-free geometry
 Zarrei_DGV:
   bundled: false
   expected_filename: nat_rev_gen_human_normal_cnv.xlsx

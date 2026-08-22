@@ -2,6 +2,8 @@
 \alias{inspect_segments}
 \alias{normalize_segments}
 \alias{extract_features}
+\alias{extract_hotlist_features}
+\alias{extract_breakpoint_candidates}
 \alias{freeze_selected_model}
 \alias{score_segments}
 \alias{validate_external}
@@ -16,6 +18,11 @@ normalize_segments(segments, format = "auto", genome_build,
   mapping_file = NULL, caller_profile = NULL, allow_incompatible = FALSE)
 extract_features(segments, genome_build = NULL,
   preprocess = c("legacy", "v6"), arm_threshold = 50, dgv_path = NULL)
+extract_hotlist_features(segments, genome_build = NULL,
+                         preprocess = c("legacy", "v6"), dgv_path = NULL)
+
+extract_breakpoint_candidates(segments, genome_build = NULL,
+                              preprocess = c("legacy", "v6"), dgv_path = NULL)
 score_segments(segments, format = "auto", genome_build, output_dir = NULL,
   mapping_file = NULL, caller_profile = NULL, features_format = "csv")
 validate_external(predictions, outcomes, output_dir = NULL,

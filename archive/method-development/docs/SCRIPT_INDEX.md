@@ -1,8 +1,10 @@
 # Script index and lineage
 
-## Supported scoring software
+## Supported workflows live at repository root
 
-`software/mbpr/` is the portable implementation. It normalizes external SEG files, extracts frozen SCNA and breakpoint features, applies the checksum-locked model, emits QC, and validates outcomes. This is the interface another lab should use first.
+Use `workflows/01_hotlist_validation/` first for the fixed nine-window panel, or
+the root `mbpr score` interface for the locked full model. The scripts below are
+method-development lineage and are not substitutes for those interfaces.
 
 ## Research analysis scripts
 
@@ -33,7 +35,7 @@ These private derivation tables are deliberately absent. External teams should c
 
 ## Recommended execution order
 
-1. Run MBPR `inspect` and resolve all QC failures.
-2. Run locked MBPR `score` for the principal external validation.
-3. If outcomes are available, run MBPR `validate` with patient IDs for clustered bootstrap.
-4. Only then run the exploratory analysis families. Perform all feature selection inside outer-training folds; never select hotspots on the full external cohort and report performance on that same cohort.
+1. Follow the root `START_HERE.md` decision table.
+2. For the document-ordered first analysis, extract and validate `hotlist-v1`.
+3. For frozen model transport, run root `mbpr score` and `mbpr validate`.
+4. Use this archive only for explicitly labeled exploratory work. Perform all feature selection inside outer-training folds; never select hotspots on the full external cohort and report performance on that same cohort.

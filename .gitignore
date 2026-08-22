@@ -6,6 +6,8 @@ renv/library/
 renv/staging/
 *.Rcheck/
 *.tar.gz
+__pycache__/
+*.py[cod]
 tests/output/
 private_input/
 results/

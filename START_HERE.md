@@ -11,8 +11,9 @@ before quoting or attempting to reproduce that table.
 | Scientific question | Correct entry point | What is fixed? | What may be fitted in the external cohort? |
 |---|---|---|---|
 | Does the dynamic top-eight procedure generalize in an outcome-linked cohort? | `mbpr top8-candidates`, then `workflows/01_dynamic_top8_validation/run_validation.py` | Candidate construction, top-k, association test, estimator, endpoints and resampling | Eight windows and coefficients, inside each training fold only |
-| Does normalized breakpoint geometry outperform a short location panel? | `archive/method-development/analysis/03_geometry_route_bakeoff.R`, then `04_scale_free_geometry_multihorizon.R` | 56 scale-free shape features and nested-validation contract | Coefficients and penalty, inside training folds only |
+| Does normalized breakpoint geometry outperform a short location panel? | `mbpr geometry-extract`, then `workflows/02_scale_free_geometry_validation/run_validation.R` | 56 scale-free shape features and nested-validation contract | Coefficients and penalty, inside training folds only |
 | Do the nine stable report-readable regions reproduce individually? | `mbpr hotlist-extract`, then `workflows/01_hotlist_validation/run_validation.R` | Window locations and boundary rules | Secondary composite sensitivity only; do not assign it the dynamic model's AUCs |
+| Do the recorded grade comparators reproduce? | `workflows/03_grade_comparators/run_validation.R` | Direct WHO and prespecified integrated-grade scores plus endpoint definition | Nothing |
 | Does a fully specified SEG model transport without refitting? | `mbpr score`, then `mbpr validate` | Preprocessing, 62 features, coefficients, scaling, calibration, percentiles | Nothing |
 | What does breakpoint architecture add beyond SCNA internally? | `docs/04_INCREMENTAL_VALUE_BEYOND_SCNA.md` | Feature families and comparison contract | Models within patient-grouped nested validation |
 | Which elevated-grade nonrecurrent or low-grade recurrent tumors are reclassified? | `docs/05_GRADE_DISCORDANT_RECLASSIFICATION.md` | Eligibility and risk-threshold contract | Nothing outside prespecified cross-validation |
@@ -48,6 +49,10 @@ follow-up through `h` is a non-event; earlier censoring is excluded. Every model
 comparison must use the identical eligible tumors and patient-grouped folds.
 
 Continue through the numbered files in [`docs/`](docs/).
+
+For the recommended collaboration sequence—shortlist, geometry, recorded-grade
+comparators, higher-information models, then locked software—see
+[`docs/11_EXTERNAL_VALIDATION_LADDER.md`](docs/11_EXTERNAL_VALIDATION_LADDER.md).
 
 Read [`docs/08_PROVENANCE_AND_OPEN_GAPS.md`](docs/08_PROVENANCE_AND_OPEN_GAPS.md)
 before quoting the document's historical “panel” AUCs.

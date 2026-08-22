@@ -5,9 +5,9 @@ of copy-number breakpoints improve meningioma recurrence prediction. The repo
 is intentionally ordered like the MeniBreak scientific narrative:
 
 1. reproduce the outcome-linked dynamic top-eight procedure;
-2. evaluate the stronger scale-free breakpoint-geometry definition;
-3. test the nine-window stability shortlist in an external cohort;
-4. compare breakpoint models with WHO grade and prespecified integrated grade;
+2. test the nine-window stability shortlist as the simplest external analysis;
+3. evaluate the stronger scale-free breakpoint-geometry definition;
+4. reproduce WHO grade and prespecified integrated-grade comparators;
 5. measure what breakpoints add beyond SCNA;
 6. examine grade-discordant reclassification; and
 7. validate the full locked SEG-to-score model.
@@ -47,6 +47,14 @@ breakpoint-only internal definition, but remains exploratory rather than a
 locked external predictor. See
 [`docs/10_BREAKPOINT_ONLY_MODEL_COMPARISON.md`](docs/10_BREAKPOINT_ONLY_MODEL_COMPARISON.md).
 
+```sh
+./mbpr geometry-extract --segments cohort.seg --format auto \
+  --genome-build GRCh37 --output-dir geometry_features
+
+Rscript workflows/02_scale_free_geometry_validation/run_validation.R \
+  geometry_features/geometry_features.csv outcomes.csv geometry_validation
+```
+
 ## Fastest Heidelberg workflow: stability shortlist
 
 ```sh
@@ -60,6 +68,14 @@ Rscript workflows/01_hotlist_validation/run_validation.R \
 This tests the nine regions that were selected most consistently by the dynamic
 procedure. They should initially be reported individually. The dynamic model's
 AUCs must not be assigned to their union.
+
+## Reproduced Word-document comparisons
+
+Recorded WHO grade and the prespecified recorded integrated-grade label were
+reproduced exactly to rounding. The higher-information clinical + SCNA and
+clinical + SCNA + breakpoint-architecture recipes also have retained source and
+fresh execution results. See the complete, status-labeled ladder in
+[`docs/11_EXTERNAL_VALIDATION_LADDER.md`](docs/11_EXTERNAL_VALIDATION_LADDER.md).
 
 ## Full locked model
 
@@ -80,6 +96,10 @@ are secondary. Its probabilities are internally calibrated and provisional.
 - [`docs/`](docs/): the scientific story and exact analysis contracts, in order.
 - [`workflows/01_hotlist_validation/`](workflows/01_hotlist_validation/): the
   self-contained first external-validation workflow.
+- [`workflows/02_scale_free_geometry_validation/`](workflows/02_scale_free_geometry_validation/):
+  SEG-to-geometry extraction and outcome-linked validation.
+- [`workflows/03_grade_comparators/`](workflows/03_grade_comparators/): exact
+  recorded WHO and integrated-grade comparison.
 - [`R/`](R/), [`inst/`](inst/), [`mbpr`](mbpr): supported package and CLI.
 - [`archive/method-development/`](archive/method-development/): BISCUT,
   TRISCUT, geometry, and other method-development analyses. These are retained

@@ -1,7 +1,7 @@
 Package: mbpr
 Type: Package
 Title: Meningioma Breakpoint Recurrence Research Scoring
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: person("Andrew", "Dunbar", role = c("aut", "cre"),
     email = "research-software@example.org")
 Description: Deterministic normalization, quality control, feature extraction,

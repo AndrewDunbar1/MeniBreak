@@ -80,3 +80,23 @@ test_that("patient-clustered validation accepts repeated tumors", {
   result <- validate_external(pred, out, bootstrap_reps = 10)
   expect_true(nrow(result$metrics) >= 1)
 })
+
+test_that("scale-free geometry extraction is fixed, finite, and deterministic", {
+  d <- data.frame(
+    sample_id = rep(c("A", "B"), each = 4),
+    chromosome = rep(c(1, 1, 6, 19), 2),
+    start = c(1, 60000000, 70000000, 41000000,
+              1, 110000000, 61000000, 43000000),
+    end = c(50000000, 90000000, 90000000, 45000000,
+            40000000, 140000000, 71000000, 47000000),
+    event = c("loss", "gain", "loss", "allelic_imbalance",
+              "loss", "gain", "gain", "loss")
+  )
+  normalized <- normalize_segments(d, genome_build = "GRCh37")
+  first <- extract_geometry_features(normalized, preprocess = "legacy")
+  second <- extract_geometry_features(normalized, preprocess = "legacy")
+  expect_equal(ncol(first) - 1L, 56L)
+  expect_true(all(vapply(first[-1], function(x) all(is.finite(x)), logical(1))))
+  expect_true(any(abs(first$loss__arm_hhi - first$gain__arm_hhi) > 0))
+  expect_identical(first, second)
+})

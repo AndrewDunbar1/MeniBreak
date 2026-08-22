@@ -45,6 +45,7 @@ cli_usage <- function() {
     "",
     "Commands:",
     "  top8-candidates --segments FILE --format FORMAT --genome-build BUILD --output-dir DIR",
+    "  geometry-extract --segments FILE --format FORMAT --genome-build BUILD --output-dir DIR",
     "  hotlist-extract --segments FILE --format FORMAT --genome-build BUILD --output-dir DIR",
     "  inspect --segments FILE --format auto --genome-build BUILD [--mapping-file YAML] [--caller-profile YAML]",
     "  score --segments FILE --format FORMAT --genome-build BUILD --output-dir DIR [--mapping-file YAML] [--caller-profile YAML]",
@@ -71,6 +72,15 @@ mbpr_cli <- function(args = commandArgs(trailingOnly = TRUE)) {
       preprocess = o$preprocess %||% "legacy", dgv_path = o$dgv_path
     )
     cat("Wrote dynamic top-eight candidate features to", normalizePath(o$output_dir), "\n")
+  } else if (command == "geometry-extract") {
+    require_cli(o, c("segments", "genome_build", "output_dir"))
+    write_geometry_outputs(
+      o$segments, format = o$format %||% "auto",
+      genome_build = o$genome_build, output_dir = o$output_dir,
+      mapping_file = o$mapping_file, caller_profile = o$caller_profile,
+      preprocess = o$preprocess %||% "legacy", dgv_path = o$dgv_path
+    )
+    cat("Wrote scale-free geometry features to", normalizePath(o$output_dir), "\n")
   } else if (command == "hotlist-extract") {
     require_cli(o, c("segments", "genome_build", "output_dir"))
     write_hotlist_outputs(

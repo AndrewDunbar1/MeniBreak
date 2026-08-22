@@ -4,6 +4,7 @@
 \alias{extract_features}
 \alias{extract_hotlist_features}
 \alias{extract_breakpoint_candidates}
+\alias{extract_geometry_features}
 \alias{freeze_selected_model}
 \alias{score_segments}
 \alias{validate_external}
@@ -23,6 +24,8 @@ extract_hotlist_features(segments, genome_build = NULL,
 
 extract_breakpoint_candidates(segments, genome_build = NULL,
                               preprocess = c("legacy", "v6"), dgv_path = NULL)
+extract_geometry_features(segments, genome_build = NULL,
+                          preprocess = c("legacy", "v6"), dgv_path = NULL)
 score_segments(segments, format = "auto", genome_build, output_dir = NULL,
   mapping_file = NULL, caller_profile = NULL, features_format = "csv")
 validate_external(predictions, outcomes, output_dir = NULL,

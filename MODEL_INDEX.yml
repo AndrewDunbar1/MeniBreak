@@ -33,6 +33,8 @@ models:
       validation: ten repeats of patient-grouped five-fold validation
       estimator: binomial cv.glmnet, alpha 0.25, lambda.1se selected in inner patient-grouped folds
     implementation:
+      extractor: extract_geometry_features
+      cli: mbpr geometry-extract
       workflow: workflows/02_scale_free_geometry_validation
       specification: workflows/02_scale_free_geometry_validation/model_spec.yml
       feature_lineage: archive/method-development/analysis/03_geometry_route_bakeoff.R
@@ -54,12 +56,20 @@ models:
     order: 4
     label: Recorded WHO grade
     status: comparator
-    implementation: Numeric recorded grade used directly as the discrimination score.
+    benchmark_status: reproduced_to_rounding
+    implementation:
+      definition: Numeric recorded grade used directly as the discrimination score.
+      workflow: workflows/03_grade_comparators
+      benchmark: inst/extdata/internal_reproduced_model_benchmark_20260822.csv
   - id: prespecified-integrated-grade-comparator
     order: 5
     label: Prespecified integrated grade
     status: comparator
-    implementation: Numeric recorded clinical-data label; never recalculate a proxy.
+    benchmark_status: reproduced_to_rounding
+    implementation:
+      definition: Numeric recorded clinical-data label; never recalculate a proxy.
+      workflow: workflows/03_grade_comparators
+      benchmark: inst/extdata/internal_reproduced_model_benchmark_20260822.csv
   - id: clinical-hotlist-recipe
     order: 6
     label: Clinical covariates plus dynamic top-eight
@@ -72,15 +82,21 @@ models:
     label: Clinical covariates plus SCNA
     status: nested-validation-refit-recipe
     inputs: [age, log1p_mitoses, gtr, prior_rt, adj_rt, arm_level_scna]
-    implementation: docs/03_MODEL_RECIPES.md
+    benchmark_status: fresh_internal_execution_reproduced
+    implementation:
+      specification: docs/03_MODEL_RECIPES.md
+      lineage_script: archive/method-development/analysis/08_clinical_integrated_models.R
+      benchmark: inst/extdata/internal_reproduced_model_benchmark_20260822.csv
   - id: clinical-scna-breakpoint-recipe
     order: 8
     label: Clinical covariates plus SCNA plus breakpoint architecture
     status: nested-validation-refit-recipe
+    benchmark_status: fresh_internal_execution_reproduced
     inputs: [five_clinical_covariates, 39_arm_states, 18_breakpoint_architecture_features]
     implementation:
       specification: docs/03_MODEL_RECIPES.md
       lineage_script: archive/method-development/analysis/08_clinical_integrated_models.R
+      benchmark: inst/extdata/internal_reproduced_model_benchmark_20260822.csv
   - id: mbpr-derivation-v1
     order: 9
     label: Locked SEG-only SCNA-plus-breakpoint predictor

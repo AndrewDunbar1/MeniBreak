@@ -4,6 +4,21 @@ This is the strongest freshly reproduced breakpoint-only internal definition.
 It is an outcome-linked nested-validation recipe, not a frozen patient-level
 score and not the report-readable nine-window shortlist.
 
+## External execution from SEG
+
+```sh
+./mbpr geometry-extract --segments cohort.seg --format auto \
+  --genome-build GRCh37 --output-dir geometry_features
+
+Rscript workflows/02_scale_free_geometry_validation/run_validation.R \
+  geometry_features/geometry_features.csv outcomes.csv geometry_validation
+```
+
+The first command is outcome-free and deterministically creates the exact 56
+features. The second estimates coefficients only within training folds of the
+external outcome-linked cohort. This tests whether the **recipe** generalizes;
+it does not apply an institutional frozen coefficient vector.
+
 ## Inputs
 
 - event-called SEG data with sample ID, chromosome, start, end, and event;

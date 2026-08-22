@@ -28,6 +28,11 @@ internal_breakpoint_only_benchmark:
   asset: internal_breakpoint_only_benchmark_20260822.csv
   sha256: 32df22ed5def6b1f0c9c9927cc21c7863dfd6f1153428503ee2a9f21ce23b998
   note: distinguishes literal dynamic top-eight, native-R reconstruction, and scale-free geometry
+internal_reproduced_model_benchmark:
+  status: fresh internal execution and exact direct-comparator summary
+  asset: internal_reproduced_model_benchmark_20260822.csv
+  sha256: 44c1571c1fc295fdd1a1331d79540b418ef042b4e372c5353977bd3f0c11e02a
+  note: status column distinguishes direct Word-table reproduction from fresh replacement estimates
 Zarrei_DGV:
   bundled: false
   expected_filename: nat_rev_gen_human_normal_cnv.xlsx

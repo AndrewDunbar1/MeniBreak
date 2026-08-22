@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2
+
+- Added direct SEG extraction of the exact 56-feature scale-free geometry set.
+- Added a self-contained outcome-linked geometry validation workflow.
+- Added a recorded WHO and prespecified integrated-grade comparator workflow.
+- Added a machine-readable benchmark separating exact Word-table reproduction
+  from fresh replacement estimates for clinical genomic models.
+- Added an explicit external-validation ladder retaining both the simple
+  shortlist and the stronger geometry recipe.
+
 ## 0.1.1
 
 - Reordered the repository around the MeniBreak scientific workflow.

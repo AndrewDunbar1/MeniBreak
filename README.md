@@ -48,7 +48,36 @@ You need a segmented copy-number file and recurrence outcomes — nothing else.
 Full walk-through: [`docs/QUICKSTART.md`](docs/QUICKSTART.md); input format:
 [`docs/INPUT_SPEC.md`](docs/INPUT_SPEC.md).
 
-There are **two entry points, answering two different questions.**
+### 0. First, check your data's resolution (30 seconds)
+
+```bash
+python apply/check_resolution.py --segments mycohort_segments.csv
+```
+
+Any SEG file will run. The question is whether the assay behind it localized
+breakpoints finely enough for the panel to mean anything. The panel scores
+breakpoints in bins of 5% of a chromosome arm — about **2.8 Mb**. If your typical
+event is smaller than that, breakpoints resolve to individual bins and the panel
+applies. If events are much larger, positions smear across neighbouring bins and
+the window features degrade to noise, while arm-level features are unaffected.
+
+Two measured reference points:
+
+| Platform | Median event | vs 2.8 Mb window | Panel |
+|---|---|---|---|
+| Agilent aCGH (training cohort) | 1.26 Mb | 0.45× | works |
+| conumee on EPIC methylation array | 5.10 Mb | 1.80× | lost to arm-level SCNA |
+
+**Methylation-derived copy number is the common failure case.** If your SEG came
+from 450k/EPIC via conumee, expect `TOO COARSE` and use the arm-level SCNA
+reference model, which did transport. SEG from aCGH, SNP array, OncoScan,
+panel-seq or WGS should read `SUITABLE`.
+
+This is calibrated on two platforms, so treat it as a decision aid rather than a
+validated instrument — `MARGINAL` means "run both models and compare on your own
+outcomes", not "expect a specific amount of degradation".
+
+There are then **two entry points, answering two different questions.**
 
 ### 1. Validate the published panel (fixed windows)
 
@@ -119,13 +148,14 @@ regenerate from the same code that produced the report.
 
 | Path | What it is |
 |---|---|
+| `apply/check_resolution.py` | **Preflight: is your SEG fine-grained enough for the panel?** Run this first |
 | `apply/validate_fixed_panel.py` | **Validate the published panel on your SEG** — fixed windows, no discovery |
 | `apply/menibreak_panel.py` | **Re-run the discovery method on your SEG** |
 | `src/` | The pipeline package: `harmonization/` (SEG → arms → breakpoints), `features/` (windows, SCNA, enriched), `evaluation/` (patient-grouped folds) |
 | `analyses/` | The six scripts that produced the report tables |
 | `results/reference/` | The 13 verified result CSVs (match the report to the printed digit) |
 | `reference/` | Arm references (GRCh37/GRCh38), frozen hotspot windows, and the **frozen panel definition** + the script that derives it |
-| `tests/` | 53 pytest tests — patient-leakage guarantees, tiling, feature isolation ([details](tests/README.md)) |
+| `tests/` | 79 pytest tests — patient-leakage guarantees, tiling, feature isolation, external-input handling, resolution preflight ([details](tests/README.md)) |
 | `data/example/` | Synthetic cohort + generator, so everything runs offline |
 | `figures/` | Publication figures, [with captions](figures/README.md) |
 | `RESULTS_MANIFEST.yaml` / `.json` | **Machine-readable index**: 725 result records → script → output → value → status ([regenerate](build_manifest.py)) |

@@ -52,12 +52,24 @@ def main() -> int:
             end = int(rng.integers(112_000_000, 119_000_000))
             seg_rows.append([sid, pid, "1", start, end, "loss"])
 
-        # Background genome-wide events (0-8 per tumour), random arms/positions.
-        for _ in range(int(rng.integers(0, 9))):
+        # Background genome-wide events. Counts and sizes are matched to the
+        # institutional aCGH cohort the panel was trained on, because the panel
+        # scores breakpoints in ~2.8 Mb windows and a toy set built from uniform
+        # 3-40 Mb blocks is far coarser than real array data -- it would read as
+        # "too coarse" under apply/check_resolution.py and give a new user a
+        # misleading first impression.
+        #
+        # Targets (reports/platform_resolution.csv): 15 events per sample
+        # (Q1 9, Q3 26); event length median 1.26 Mb, Q1 0.38, Q3 10.5;
+        # 47% under 1 Mb. Length is lognormal, fitted in log10 units from that
+        # median and IQR (sigma = IQR / 1.349).
+        n_bg = int(np.clip(rng.lognormal(np.log(15), 0.60), 1, 120))
+        for _ in range(n_bg):
             c = int(rng.integers(1, 23))
             L = CHR_LEN[c]
-            a = int(rng.integers(1_000_000, max(2_000_000, L - 5_000_000)))
-            b = min(L, a + int(rng.integers(3_000_000, 40_000_000)))
+            length = int(np.clip(10 ** rng.normal(6.10, 1.07), 20_000, int(0.9 * L)))
+            a = int(rng.integers(1_000_000, max(2_000_000, L - length - 1)))
+            b = min(L, a + length)
             seg_rows.append([sid, pid, str(c), a, b, rng.choice(["loss", "gain"])])
 
         # Outcome: baseline hazard + boost if the planted window is present.

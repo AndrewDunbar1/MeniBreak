@@ -51,7 +51,22 @@ from src.harmonization.institutional import (
 from src.harmonization.references import ArmReference
 from src.harmonization.schema import BoundaryClass
 
-H = os.environ.get("MENIBREAK_DATA_ROOT", "E:/Breakpoint_Architecture_Paper_Analysis_Handoff_2026-08-02/")
+_DATA_ROOT = os.environ.get("MENIBREAK_DATA_ROOT")
+if not _DATA_ROOT:
+    raise SystemExit(
+        "MENIBREAK_DATA_ROOT is not set.\n"
+        "\n"
+        "The analyses/ scripts reproduce the INSTITUTIONAL numbers and need the\n"
+        "IRB-restricted data root, which is not shipped with this repository:\n"
+        "\n"
+        "    export MENIBREAK_DATA_ROOT=/path/to/handoff/\n"
+        "    setx MENIBREAK_DATA_ROOT C:\\path\\to\\handoff   (Windows)\n"
+        "\n"
+        "To run the panel on YOUR OWN cohort you do not need this at all.\n"
+        "Use apply/menibreak_panel.py or apply/validate_fixed_panel.py instead;\n"
+        "see docs/QUICKSTART.md."
+    )
+H = _DATA_ROOT if _DATA_ROOT.endswith(("/", "\\")) else _DATA_ROOT + "/"
 REF = H + "02_REFERENCE_AND_PROCESSED_DATA/"
 SRC = H + "03_ANALYSIS_READY_DATA/ml_breakpoint_model_dataset_2026.csv"
 

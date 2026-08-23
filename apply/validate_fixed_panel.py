@@ -51,7 +51,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
-from apply.menibreak_panel import adapt_segments, oof
+from apply.menibreak_panel import adapt_segments, load_outcomes_table, oof
 from src.features.architecture import build_feature_table, feature_groups
 from src.features.hotlist import build_window_matrix
 from src.harmonization.breakpoints import derive_breakpoints, tile_arms
@@ -129,12 +129,7 @@ def main() -> int:
                                         ref_dir / "hotspot_windows_v1.csv"))
     scna_cols = feature_groups(base_feat.columns)["scna"]
 
-    oc = pd.read_csv(args.outcomes)
-    need = {"sample_id", "patient_id", "recurrence_time", "recurrence_event"}
-    if need - set(oc.columns):
-        raise ValueError(f"outcomes missing {sorted(need - set(oc.columns))}")
-    oc = oc.rename(columns={"sample_id": "tumor_id"})
-    oc["tumor_id"] = oc["tumor_id"].astype(str)
+    oc = load_outcomes_table(args.outcomes)
 
     rows = []
     for horizon in args.horizons:

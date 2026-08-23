@@ -86,13 +86,86 @@ def _map_event(v: object) -> EventClass:
     return EVENT_SYNONYMS[s]
 
 
+def load_outcomes_table(path: str | Path) -> pd.DataFrame:
+    """Outcomes CSV -> canonical frame, with the checks an external cohort needs.
+
+    `patient_id` is OPTIONAL and defaults to `sample_id`, matching INPUT_SPEC.md.
+    Requiring it broke the common one-tumour-per-patient case.
+
+    `recurrence_time` must be in YEARS. Passing months is a silent, catastrophic
+    error -- it does not crash, it just moves nearly every tumour past the
+    horizon and returns a meaningless AUC on a handful of events. That is worse
+    than failing, so it is checked.
+    """
+    path = Path(path)
+    oc = pd.read_csv(path)
+    need = {"sample_id", "recurrence_time", "recurrence_event"}
+    missing = need - set(oc.columns)
+    if missing:
+        raise ValueError(
+            f"{path}: outcomes missing required columns {sorted(missing)}. "
+            f"Found: {sorted(oc.columns)}. See docs/INPUT_SPEC.md."
+        )
+    if "patient_id" not in oc.columns:
+        log.info("outcomes: no patient_id column; assuming one tumour per patient")
+        oc = oc.assign(patient_id=oc["sample_id"])
+
+    t = pd.to_numeric(oc["recurrence_time"], errors="coerce")
+    e = pd.to_numeric(oc["recurrence_event"], errors="coerce")
+    if t.isna().all():
+        raise ValueError(f"{path}: recurrence_time is not numeric")
+    if not set(e.dropna().unique()) <= {0, 1}:
+        raise ValueError(
+            f"{path}: recurrence_event must be 0/1, found "
+            f"{sorted(set(e.dropna().unique()))[:6]}"
+        )
+    if (t < 0).any():
+        raise ValueError(f"{path}: recurrence_time contains negative values")
+
+    median_t = float(t.median())
+    if median_t > 25:
+        raise ValueError(
+            f"{path}: median recurrence_time is {median_t:.1f}, which is implausible "
+            f"in YEARS. This is almost certainly months or days. Convert to years "
+            f"(months / 12, days / 365.25) and re-run. Passing the wrong unit does "
+            f"not crash -- it silently returns a meaningless AUC."
+        )
+    if median_t < 0.25:
+        log.warning("outcomes: median follow-up is %.2f years, which is very short. "
+                    "Confirm recurrence_time is in YEARS.", median_t)
+
+    oc = oc.rename(columns={"sample_id": "tumor_id"})
+    oc["tumor_id"] = oc["tumor_id"].astype(str)
+    oc["recurrence_time"] = t
+    oc["recurrence_event"] = e
+    log.info("outcomes: %d tumours, %d patients, median follow-up %.1f y, %d events",
+             len(oc), oc["patient_id"].nunique(), median_t, int((e == 1).sum()))
+    return oc
+
+
 def adapt_segments(path: str | Path, build: str = "GRCh37") -> pd.DataFrame:
     """Generic SEG -> canonical segment frame (adds `track`, `segment_id`)."""
     raw = pd.read_csv(path)
+    # A tab- or semicolon-separated file read as CSV yields one fat column. Say
+    # so, rather than reporting every required column as missing.
+    if raw.shape[1] == 1:
+        only = str(raw.columns[0])
+        for sep, name in (("	", "tab"), (";", "semicolon"), ("|", "pipe")):
+            if sep in only:
+                raise ValueError(
+                    f"{path}: parsed as a single column, but the header contains "
+                    f"{name} characters. The file is probably {name}-separated; "
+                    f"convert it to comma-separated or re-export as CSV."
+                )
     need = {"sample_id", "chromosome", "start", "end", "event"}
     missing = need - set(raw.columns)
     if missing:
-        raise ValueError(f"{path}: segments missing required columns {sorted(missing)}")
+        raise ValueError(
+            f"{path}: segments missing required columns {sorted(missing)}. "
+            f"Found: {sorted(raw.columns)[:12]}. See docs/INPUT_SPEC.md."
+        )
+    if len(raw) == 0:
+        raise ValueError(f"{path}: segments file has a header but no rows")
     ev = raw["event"].map(_map_event)
     track = ev.map(lambda e: "cn" if e in COPY_NUMBER_EVENTS else "allelic").astype("string")
     sid = raw["sample_id"].astype("string")
@@ -210,12 +283,7 @@ def main() -> int:
                     "~97/sample data; AUCs here may not be comparable (see INPUT_SPEC.md).")
 
     # outcomes -> per-horizon labels (strict fixed-horizon endpoint)
-    oc = pd.read_csv(args.outcomes)
-    need = {"sample_id", "patient_id", "recurrence_time", "recurrence_event"}
-    if need - set(oc.columns):
-        raise ValueError(f"outcomes missing {sorted(need - set(oc.columns))}")
-    oc = oc.rename(columns={"sample_id": "tumor_id"})
-    oc["tumor_id"] = oc["tumor_id"].astype(str)
+    oc = load_outcomes_table(args.outcomes)
 
     rows, all_windows = [], []
     for horizon in args.horizons:

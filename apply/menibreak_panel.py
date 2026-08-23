@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Run the MeniBreak breakpoint panel on YOUR OWN segmented copy-number data.
 
-This is the entry point for an external cohort (e.g. Heidelberg). It takes a
-generic SEG file plus recurrence outcomes and reproduces the core analysis of
-the MeniBreak report on your data:
+This is the entry point for an external cohort. It takes a generic SEG file plus
+recurrence outcomes and reproduces the core analysis of the MeniBreak report on
+your data:
 
   1. adapt your SEG to the canonical schema,
   2. tile chromosome arms and derive breakpoints (change points),

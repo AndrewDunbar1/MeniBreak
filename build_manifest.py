@@ -93,7 +93,7 @@ def main() -> int:
             "entry_point": "apply/menibreak_panel.py",
             "input": "a generic SEG (sample_id, chromosome, start, end, event) + outcomes",
             "spec": "docs/INPUT_SPEC.md",
-            "quickstart": "docs/HEIDELBERG_QUICKSTART.md",
+            "quickstart": "docs/QUICKSTART.md",
             "tested_on": "data/example (synthetic); verified to run end-to-end and recover the planted 1p window",
         },
         "reproduction_status": {
@@ -122,8 +122,10 @@ def main() -> int:
                                     "records": records("external_validation.csv", round_auc=True)},
         },
         "limitations": [
-            "No external validation: the panel failed on GSE189521 for a measured reason "
-            "(methylation CNA detects ~11 breakpoints/sample vs ~97; window occupancy 3.7% vs 27.8%).",
+            "Internal validation only: not yet validated in an independent cohort of "
+            "comparable copy-number resolution. One attempt on a methylation-derived "
+            "cohort (GSE189521) degraded, but that is a resolution mismatch rather than "
+            "a refutation (~11 breakpoints/sample vs ~97; window occupancy 3.7% vs 27.8%).",
             "The restricted cohort has 22/37/43 events at 3/5/7y; its largest effects are its least precise.",
             "Research use only. No claim of clinical utility or prospective validation.",
         ],

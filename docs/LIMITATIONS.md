@@ -2,10 +2,17 @@
 
 These travel with every number in this repository. None of them are footnotes.
 
-## 1. No external validation
+## 1. Internal validation only
 
-The panel was tested on an external methylation-derived cohort (GSE189521) and
-**degraded** at every horizon. The reason was measured, not guessed:
+The panel has **not yet been validated in an independent cohort of comparable
+copy-number resolution**. That is the single most important open item, and
+`apply/menibreak_panel.py` exists to make it straightforward for another centre
+to perform.
+
+One external attempt has been made, on a methylation-derived cohort
+(GSE189521), where the panel **degraded** at every horizon. That attempt is
+best read as a *resolution mismatch rather than a refutation*, and the reason
+was measured, not guessed:
 
 - median **97** breakpoints/sample institutional vs **11** external;
 - panel window occupancy **27.8%** vs **3.7%**;

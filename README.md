@@ -26,25 +26,26 @@ external cohort can **run the same method on its own SEG file**.
 
 The panel **alone** matches integrated grade at 5 years and beats it at 7; it is
 the only marker that *improves* with horizon. The chr1p pericentromeric window
-(chr1:118.75–125.00 Mb) is selected in 88–92% of folds across horizons. See
+(chr1:118.75–125.00 Mb) is selected in 88–96% of folds across horizons. See
 [`docs/THE_PANEL.md`](docs/THE_PANEL.md).
 
 ## Three caveats that travel with every number
 
-1. **No external validation.** The panel failed on an external methylation
-   cohort for a *measured* reason: methylation CNA detects ~11 breakpoints/sample
-   vs ~97 on the institutional platform (window occupancy 3.7% vs 27.8%). A
-   same-resolution cohort is required. See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).
+1. **Internal validation only.** Every AUC here is patient-grouped out-of-fold
+   within a single institutional cohort. Validation in an independent cohort of
+   comparable copy-number resolution is the necessary next step, and is exactly
+   what [`apply/menibreak_panel.py`](apply/menibreak_panel.py) exists to enable.
+   See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).
 2. **The restricted cohort has 22/37/43 events** at 3/5/7 years — its largest
    effects are its least precise.
 3. **Research use only.** No claim of clinical utility or prospective validation.
 
 ---
 
-## Run it on YOUR data (external cohort / Heidelberg)
+## Run it on YOUR data (external cohort)
 
 You need a segmented copy-number file and recurrence outcomes. Full walk-through:
-[`docs/HEIDELBERG_QUICKSTART.md`](docs/HEIDELBERG_QUICKSTART.md); input format:
+[`docs/QUICKSTART.md`](docs/QUICKSTART.md); input format:
 [`docs/INPUT_SPEC.md`](docs/INPUT_SPEC.md).
 
 ```bash

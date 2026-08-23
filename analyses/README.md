@@ -26,7 +26,7 @@ unchanged.
 **To run on your own data instead**, do not use these — use
 [`../apply/menibreak_panel.py`](../apply/menibreak_panel.py), which takes a
 generic SEG + outcomes and needs no institutional layout. See
-[`../docs/HEIDELBERG_QUICKSTART.md`](../docs/HEIDELBERG_QUICKSTART.md).
+[`../docs/QUICKSTART.md`](../docs/QUICKSTART.md).
 
 The shipped CSVs in `results/reference/` are the verified outputs of these
 scripts and match the report to the printed precision; `RESULTS_MANIFEST.yaml`

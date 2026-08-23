@@ -26,10 +26,23 @@ every fold.)
 
 Source: `results/reference/hotlist_windows.csv` (from `analyses/02_discover_hotlist.py`).
 
+**How to read this table.** The selection frequencies above are the **k = 5**
+rows of `hotlist_windows.csv`, and “—” means the window was selected in fewer
+than 40% of folds at that horizon. The discovery script sweeps several panel
+sizes, so the CSV contains **k ∈ {3, 5, 8, 15}**; filter on `k` before quoting a
+number. Note that the *performance* ladder in `results/reference/full_ladder.csv`
+("8-window panel") is fitted at **k = 8**, so the stability table and the AUC
+table are reported at different k. This is stated explicitly here because the
+original report showed the two side by side without saying so, which made the
+panel look like a fixed nine-window list. The headline window is more stable, not
+less, at the k used for performance: at k = 8 the chr1p 0.95–1.00 window is
+selected in **100% / 96% / 96%** of folds at 3 / 5 / 7 years.
+
 ## The headline window
 
 The **chr1p pericentromeric window, chr1:118.75–125.00 Mb**, is the single most
-stable feature: selected in **96% / 88% / 92%** of folds at 3 / 5 / 7 years. It is
+stable feature: selected in **96% / 88% / 92%** of folds at 3 / 5 / 7 years
+(k = 5; 100% / 96% / 96% at k = 8). It is
 recovered **without** the frozen list being an input to selection — an internal
 positive control that the procedure rediscovers the known chr1p hotspot rather
 than being told about it.

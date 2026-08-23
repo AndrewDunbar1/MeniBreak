@@ -79,8 +79,8 @@ build.
 
 The panel is defined at ~5 Mb window resolution and assumes a change-point
 detector of roughly SNP-array/WGS sensitivity (~50–100 breakpoints/sample). On a
-much coarser platform (e.g. methylation-array CNA, ~11 breakpoints/sample) the
-windows fire far less often and the panel underperforms — this is the measured
-reason external validation failed. `apply/menibreak_panel.py` prints your median
-breakpoints/sample and window occupancy so you can check comparability before
-trusting the AUCs.
+much coarser platform — methylation-array–derived CNA typically yields ~11
+breakpoints/sample — the windows fire far less often, and a weak result reflects
+the resolution mismatch rather than the panel.
+`apply/menibreak_panel.py` prints your median breakpoints/sample and window
+occupancy so you can check comparability before trusting the AUCs.

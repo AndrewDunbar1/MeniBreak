@@ -60,13 +60,13 @@ Outputs in `results/your_cohort/`:
 
 ## 4. Read the QC line first
 
-Before trusting the AUCs, check the printed
-`median breakpoints/sample` and `mean window occupancy`. The panel was defined on
-data with a **median ~97 breakpoints/sample and 27.8% window occupancy**. If your
-platform is much coarser (the tool warns below 40/sample), the ~5 Mb windows are
-not comparable and a same-resolution cohort is needed — this is the measured
-reason validation failed on an external methylation cohort (see
-[`LIMITATIONS.md`](LIMITATIONS.md)).
+Before trusting the AUCs, check the printed `median breakpoints/sample` and
+`mean window occupancy`. The panel was defined on data with a **median ~97
+breakpoints/sample and 27.8% window occupancy**. Window-based features assume a
+change-point detector of comparable sensitivity: if your platform is much coarser
+(the tool warns below 40 breakpoints/sample), the ~5 Mb windows fire too rarely
+to be comparable, and a weak result should not be read as a test of the panel.
+See [`LIMITATIONS.md`](LIMITATIONS.md).
 
 ## 5. Interpret
 

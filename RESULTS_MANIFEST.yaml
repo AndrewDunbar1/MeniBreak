@@ -71,11 +71,48 @@ scripts:
     - external_validation.csv
     produces: external methylation-cohort validation (negative)
 external_use:
-  entry_point: apply/menibreak_panel.py
   input: a generic SEG (sample_id, chromosome, start, end, event) + outcomes
   spec: docs/INPUT_SPEC.md
   quickstart: docs/QUICKSTART.md
-  tested_on: data/example (synthetic); verified to run end-to-end and recover the planted 1p window
+  entry_points:
+    apply/validate_fixed_panel.py:
+      question: Does the PUBLISHED panel discriminate recurrence in my cohort?
+      windows: fixed, read from reference/menibreak_panel_v1.csv; nothing learned from your data
+      scoring:
+        count: risk = number of panel windows containing a breakpoint; ZERO fitted parameters (frozen
+          marker)
+        refit: fixed windows as features, coefficients refit under patient-grouped CV (validates the window
+          set)
+      panel_sets:
+        published: 9
+        rule: 11
+    apply/menibreak_panel.py:
+      question: Does the discovery METHOD find prognostic windows in my cohort?
+      windows: re-selected inside each training fold of your own data
+  panel_definition:
+    file: reference/menibreak_panel_v1.csv
+    generated_by: reference/build_panel_definition.py
+    rule: union over horizons of windows selected in >=40% of training folds at k=5
+    published_windows: 9
+    rule_windows: 11
+    discrepancy: The reproducible rule admits 11 windows; the report published 9. It additionally admits
+      bp_14q_b18 (0.40 at 7y) and bp_2q_b14 (0.44 at 5y), while the published table keeps bp_3p_b10 and
+      bp_6q_b19 at the same 0.40. The published nine are therefore not recoverable from any single threshold;
+      both sets are shipped and labelled via `in_published_table`.
+  tested_on: data/example (synthetic); both entry points verified end-to-end; discovery recovers the planted
+    1p window
+tests:
+  suite: tests/ (pytest)
+  count: 53
+  covers:
+  - patient-grouped folds keep a patient's tumours together
+  - every tumour is tested exactly once; splits deterministic under seed
+  - the leakage detector catches a deliberately bad split (negative control)
+  - the segment schema declares no outcome columns
+  - arm tiling is gapless; centromere-spanning segments split; overlaps reported
+  - breakpoint features stay out of the arm-level SCNA feature group
+  - exactly five clinical covariates; grade is a comparator, never a predictor
+  run: pip install -r requirements-dev.txt && python -m pytest tests/ -q
 reproduction_status:
   who_ig_comparators: EXACT — independently reproduced locally
   panel_ladder_and_windows: RETAINED CODE + OUTPUTS — regenerate with analyses/ on the institutional dataset
@@ -4044,6 +4081,1910 @@ results:
       n_external: 22
       events: 18
       auc: 0.722
+  elevated_grade_rescue:
+    source_file: results/reference/clinical_metrics_elevated_grade.csv
+    generating_script: analyses/04_scna_plus_panel.py
+    description: Fraction of never-recurring elevated-grade tumours correctly called low risk
+    records:
+    - horizon: 3
+      scope: Broad
+      model: WHO grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 196
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 3
+      scope: Broad
+      model: WHO grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 180
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 3
+      scope: Broad
+      model: Integrated grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 196
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 3
+      scope: Broad
+      model: Integrated grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 180
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 3
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      grade_system: WHO grade 2/3
+      low_risk_n: 71
+      total: 196
+      fraction_below_threshold: 0.3622448979591837
+      achieved_sensitivity: 0.803921568627451
+    - horizon: 3
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      grade_system: Integrated grade 2/3
+      low_risk_n: 28
+      total: 180
+      fraction_below_threshold: 0.1555555555555555
+      achieved_sensitivity: 0.803921568627451
+    - horizon: 3
+      scope: Broad
+      model: Arm-level SCNA
+      grade_system: WHO grade 2/3
+      low_risk_n: 68
+      total: 196
+      fraction_below_threshold: 0.3469387755102041
+      achieved_sensitivity: 0.803921568627451
+    - horizon: 3
+      scope: Broad
+      model: Arm-level SCNA
+      grade_system: Integrated grade 2/3
+      low_risk_n: 8
+      total: 180
+      fraction_below_threshold: 0.0444444444444444
+      achieved_sensitivity: 0.803921568627451
+    - horizon: 3
+      scope: Broad
+      model: SCNA + breakpoint panel
+      grade_system: WHO grade 2/3
+      low_risk_n: 85
+      total: 196
+      fraction_below_threshold: 0.4336734693877551
+      achieved_sensitivity: 0.803921568627451
+    - horizon: 3
+      scope: Broad
+      model: SCNA + breakpoint panel
+      grade_system: Integrated grade 2/3
+      low_risk_n: 22
+      total: 180
+      fraction_below_threshold: 0.1222222222222222
+      achieved_sensitivity: 0.803921568627451
+    - horizon: 3
+      scope: Restricted
+      model: WHO grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 73
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 3
+      scope: Restricted
+      model: WHO grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 62
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 3
+      scope: Restricted
+      model: Integrated grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 73
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 3
+      scope: Restricted
+      model: Integrated grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 62
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 3
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      grade_system: WHO grade 2/3
+      low_risk_n: 33
+      total: 73
+      fraction_below_threshold: 0.4520547945205479
+      achieved_sensitivity: 0.8181818181818182
+    - horizon: 3
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      grade_system: Integrated grade 2/3
+      low_risk_n: 10
+      total: 62
+      fraction_below_threshold: 0.1612903225806451
+      achieved_sensitivity: 0.8181818181818182
+    - horizon: 3
+      scope: Restricted
+      model: Arm-level SCNA
+      grade_system: WHO grade 2/3
+      low_risk_n: 33
+      total: 73
+      fraction_below_threshold: 0.4520547945205479
+      achieved_sensitivity: 0.8181818181818182
+    - horizon: 3
+      scope: Restricted
+      model: Arm-level SCNA
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 62
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 0.8181818181818182
+    - horizon: 3
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      grade_system: WHO grade 2/3
+      low_risk_n: 40
+      total: 73
+      fraction_below_threshold: 0.547945205479452
+      achieved_sensitivity: 0.8181818181818182
+    - horizon: 3
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      grade_system: Integrated grade 2/3
+      low_risk_n: 9
+      total: 62
+      fraction_below_threshold: 0.1451612903225806
+      achieved_sensitivity: 0.8181818181818182
+    - horizon: 5
+      scope: Broad
+      model: WHO grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 117
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 5
+      scope: Broad
+      model: WHO grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 107
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 5
+      scope: Broad
+      model: Integrated grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 117
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 5
+      scope: Broad
+      model: Integrated grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 107
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 5
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      grade_system: WHO grade 2/3
+      low_risk_n: 40
+      total: 117
+      fraction_below_threshold: 0.3418803418803419
+      achieved_sensitivity: 0.803030303030303
+    - horizon: 5
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      grade_system: Integrated grade 2/3
+      low_risk_n: 21
+      total: 107
+      fraction_below_threshold: 0.1962616822429906
+      achieved_sensitivity: 0.803030303030303
+    - horizon: 5
+      scope: Broad
+      model: Arm-level SCNA
+      grade_system: WHO grade 2/3
+      low_risk_n: 39
+      total: 117
+      fraction_below_threshold: 0.3333333333333333
+      achieved_sensitivity: 0.8068181818181818
+    - horizon: 5
+      scope: Broad
+      model: Arm-level SCNA
+      grade_system: Integrated grade 2/3
+      low_risk_n: 5
+      total: 107
+      fraction_below_threshold: 0.0467289719626168
+      achieved_sensitivity: 0.8068181818181818
+    - horizon: 5
+      scope: Broad
+      model: SCNA + breakpoint panel
+      grade_system: WHO grade 2/3
+      low_risk_n: 44
+      total: 117
+      fraction_below_threshold: 0.376068376068376
+      achieved_sensitivity: 0.8106060606060606
+    - horizon: 5
+      scope: Broad
+      model: SCNA + breakpoint panel
+      grade_system: Integrated grade 2/3
+      low_risk_n: 11
+      total: 107
+      fraction_below_threshold: 0.102803738317757
+      achieved_sensitivity: 0.8106060606060606
+    - horizon: 5
+      scope: Restricted
+      model: WHO grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 38
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 5
+      scope: Restricted
+      model: WHO grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 34
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 5
+      scope: Restricted
+      model: Integrated grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 38
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 5
+      scope: Restricted
+      model: Integrated grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 34
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 5
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      grade_system: WHO grade 2/3
+      low_risk_n: 17
+      total: 38
+      fraction_below_threshold: 0.4473684210526316
+      achieved_sensitivity: 0.8108108108108109
+    - horizon: 5
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      grade_system: Integrated grade 2/3
+      low_risk_n: 8
+      total: 34
+      fraction_below_threshold: 0.2352941176470588
+      achieved_sensitivity: 0.8108108108108109
+    - horizon: 5
+      scope: Restricted
+      model: Arm-level SCNA
+      grade_system: WHO grade 2/3
+      low_risk_n: 14
+      total: 38
+      fraction_below_threshold: 0.3684210526315789
+      achieved_sensitivity: 0.8108108108108109
+    - horizon: 5
+      scope: Restricted
+      model: Arm-level SCNA
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 34
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 0.8108108108108109
+    - horizon: 5
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      grade_system: WHO grade 2/3
+      low_risk_n: 21
+      total: 38
+      fraction_below_threshold: 0.5526315789473685
+      achieved_sensitivity: 0.8108108108108109
+    - horizon: 5
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      grade_system: Integrated grade 2/3
+      low_risk_n: 5
+      total: 34
+      fraction_below_threshold: 0.1470588235294117
+      achieved_sensitivity: 0.8108108108108109
+    - horizon: 7
+      scope: Broad
+      model: WHO grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 66
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 7
+      scope: Broad
+      model: WHO grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 52
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 7
+      scope: Broad
+      model: Integrated grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 66
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 7
+      scope: Broad
+      model: Integrated grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 52
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 7
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      grade_system: WHO grade 2/3
+      low_risk_n: 28
+      total: 66
+      fraction_below_threshold: 0.4242424242424242
+      achieved_sensitivity: 0.8006756756756757
+    - horizon: 7
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      grade_system: Integrated grade 2/3
+      low_risk_n: 13
+      total: 52
+      fraction_below_threshold: 0.25
+      achieved_sensitivity: 0.8006756756756757
+    - horizon: 7
+      scope: Broad
+      model: Arm-level SCNA
+      grade_system: WHO grade 2/3
+      low_risk_n: 30
+      total: 66
+      fraction_below_threshold: 0.4545454545454545
+      achieved_sensitivity: 0.8006756756756757
+    - horizon: 7
+      scope: Broad
+      model: Arm-level SCNA
+      grade_system: Integrated grade 2/3
+      low_risk_n: 5
+      total: 52
+      fraction_below_threshold: 0.0961538461538461
+      achieved_sensitivity: 0.8006756756756757
+    - horizon: 7
+      scope: Broad
+      model: SCNA + breakpoint panel
+      grade_system: WHO grade 2/3
+      low_risk_n: 33
+      total: 66
+      fraction_below_threshold: 0.5
+      achieved_sensitivity: 0.8006756756756757
+    - horizon: 7
+      scope: Broad
+      model: SCNA + breakpoint panel
+      grade_system: Integrated grade 2/3
+      low_risk_n: 12
+      total: 52
+      fraction_below_threshold: 0.2307692307692307
+      achieved_sensitivity: 0.8006756756756757
+    - horizon: 7
+      scope: Restricted
+      model: WHO grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 21
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 7
+      scope: Restricted
+      model: WHO grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 19
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 7
+      scope: Restricted
+      model: Integrated grade
+      grade_system: WHO grade 2/3
+      low_risk_n: 0
+      total: 21
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 7
+      scope: Restricted
+      model: Integrated grade
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 19
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 1.0
+    - horizon: 7
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      grade_system: WHO grade 2/3
+      low_risk_n: 11
+      total: 21
+      fraction_below_threshold: 0.5238095238095238
+      achieved_sensitivity: 0.813953488372093
+    - horizon: 7
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      grade_system: Integrated grade 2/3
+      low_risk_n: 6
+      total: 19
+      fraction_below_threshold: 0.3157894736842105
+      achieved_sensitivity: 0.813953488372093
+    - horizon: 7
+      scope: Restricted
+      model: Arm-level SCNA
+      grade_system: WHO grade 2/3
+      low_risk_n: 10
+      total: 21
+      fraction_below_threshold: 0.4761904761904761
+      achieved_sensitivity: 0.813953488372093
+    - horizon: 7
+      scope: Restricted
+      model: Arm-level SCNA
+      grade_system: Integrated grade 2/3
+      low_risk_n: 0
+      total: 19
+      fraction_below_threshold: 0.0
+      achieved_sensitivity: 0.813953488372093
+    - horizon: 7
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      grade_system: WHO grade 2/3
+      low_risk_n: 12
+      total: 21
+      fraction_below_threshold: 0.5714285714285714
+      achieved_sensitivity: 0.813953488372093
+    - horizon: 7
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      grade_system: Integrated grade 2/3
+      low_risk_n: 3
+      total: 19
+      fraction_below_threshold: 0.1578947368421052
+      achieved_sensitivity: 0.813953488372093
+  high_risk_tail_capture:
+    source_file: results/reference/clinical_metrics_capture.csv
+    generating_script: analyses/04_scna_plus_panel.py
+    records:
+    - horizon: 3
+      scope: Broad
+      model: WHO grade
+      tail: Top 10%
+      capture_fraction: 0.2156862745098039
+    - horizon: 3
+      scope: Broad
+      model: WHO grade
+      tail: Top 20%
+      capture_fraction: 0.392156862745098
+    - horizon: 3
+      scope: Broad
+      model: WHO grade
+      tail: Top 33%
+      capture_fraction: 0.5833333333333334
+    - horizon: 3
+      scope: Broad
+      model: Integrated grade
+      tail: Top 10%
+      capture_fraction: 0.2990196078431372
+    - horizon: 3
+      scope: Broad
+      model: Integrated grade
+      tail: Top 20%
+      capture_fraction: 0.4803921568627451
+    - horizon: 3
+      scope: Broad
+      model: Integrated grade
+      tail: Top 33%
+      capture_fraction: 0.6862745098039216
+    - horizon: 3
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 10%
+      capture_fraction: 0.2058823529411764
+    - horizon: 3
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 20%
+      capture_fraction: 0.3823529411764705
+    - horizon: 3
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 33%
+      capture_fraction: 0.5931372549019608
+    - horizon: 3
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 10%
+      capture_fraction: 0.2647058823529412
+    - horizon: 3
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 20%
+      capture_fraction: 0.5049019607843137
+    - horizon: 3
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 33%
+      capture_fraction: 0.7205882352941176
+    - horizon: 3
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 10%
+      capture_fraction: 0.284313725490196
+    - horizon: 3
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 20%
+      capture_fraction: 0.5245098039215687
+    - horizon: 3
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 33%
+      capture_fraction: 0.7058823529411765
+    - horizon: 3
+      scope: Restricted
+      model: WHO grade
+      tail: Top 10%
+      capture_fraction: 0.2727272727272727
+    - horizon: 3
+      scope: Restricted
+      model: WHO grade
+      tail: Top 20%
+      capture_fraction: 0.5
+    - horizon: 3
+      scope: Restricted
+      model: WHO grade
+      tail: Top 33%
+      capture_fraction: 0.5454545454545454
+    - horizon: 3
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 10%
+      capture_fraction: 0.5
+    - horizon: 3
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 20%
+      capture_fraction: 0.7272727272727273
+    - horizon: 3
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 33%
+      capture_fraction: 0.7727272727272727
+    - horizon: 3
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 10%
+      capture_fraction: 0.1363636363636363
+    - horizon: 3
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 20%
+      capture_fraction: 0.3181818181818182
+    - horizon: 3
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 33%
+      capture_fraction: 0.6363636363636364
+    - horizon: 3
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 10%
+      capture_fraction: 0.4545454545454545
+    - horizon: 3
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 20%
+      capture_fraction: 0.7272727272727273
+    - horizon: 3
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 33%
+      capture_fraction: 0.7272727272727273
+    - horizon: 3
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 10%
+      capture_fraction: 0.4090909090909091
+    - horizon: 3
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 20%
+      capture_fraction: 0.7272727272727273
+    - horizon: 3
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 33%
+      capture_fraction: 0.8181818181818182
+    - horizon: 5
+      scope: Broad
+      model: WHO grade
+      tail: Top 10%
+      capture_fraction: 0.1553030303030303
+    - horizon: 5
+      scope: Broad
+      model: WHO grade
+      tail: Top 20%
+      capture_fraction: 0.3068181818181818
+    - horizon: 5
+      scope: Broad
+      model: WHO grade
+      tail: Top 33%
+      capture_fraction: 0.4848484848484848
+    - horizon: 5
+      scope: Broad
+      model: Integrated grade
+      tail: Top 10%
+      capture_fraction: 0.2272727272727272
+    - horizon: 5
+      scope: Broad
+      model: Integrated grade
+      tail: Top 20%
+      capture_fraction: 0.3901515151515151
+    - horizon: 5
+      scope: Broad
+      model: Integrated grade
+      tail: Top 33%
+      capture_fraction: 0.5568181818181818
+    - horizon: 5
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 10%
+      capture_fraction: 0.2234848484848484
+    - horizon: 5
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 20%
+      capture_fraction: 0.4128787878787879
+    - horizon: 5
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 33%
+      capture_fraction: 0.5568181818181818
+    - horizon: 5
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 10%
+      capture_fraction: 0.2121212121212121
+    - horizon: 5
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 20%
+      capture_fraction: 0.3901515151515151
+    - horizon: 5
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 33%
+      capture_fraction: 0.6022727272727273
+    - horizon: 5
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 10%
+      capture_fraction: 0.231060606060606
+    - horizon: 5
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 20%
+      capture_fraction: 0.4204545454545454
+    - horizon: 5
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 33%
+      capture_fraction: 0.6212121212121212
+    - horizon: 5
+      scope: Restricted
+      model: WHO grade
+      tail: Top 10%
+      capture_fraction: 0.2162162162162162
+    - horizon: 5
+      scope: Restricted
+      model: WHO grade
+      tail: Top 20%
+      capture_fraction: 0.4324324324324324
+    - horizon: 5
+      scope: Restricted
+      model: WHO grade
+      tail: Top 33%
+      capture_fraction: 0.5135135135135135
+    - horizon: 5
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 10%
+      capture_fraction: 0.4054054054054054
+    - horizon: 5
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 20%
+      capture_fraction: 0.5945945945945946
+    - horizon: 5
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 33%
+      capture_fraction: 0.7297297297297297
+    - horizon: 5
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 10%
+      capture_fraction: 0.3513513513513513
+    - horizon: 5
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 20%
+      capture_fraction: 0.5135135135135135
+    - horizon: 5
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 33%
+      capture_fraction: 0.7297297297297297
+    - horizon: 5
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 10%
+      capture_fraction: 0.3513513513513513
+    - horizon: 5
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 20%
+      capture_fraction: 0.6486486486486487
+    - horizon: 5
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 33%
+      capture_fraction: 0.6756756756756757
+    - horizon: 5
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 10%
+      capture_fraction: 0.3783783783783784
+    - horizon: 5
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 20%
+      capture_fraction: 0.5675675675675675
+    - horizon: 5
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 33%
+      capture_fraction: 0.8378378378378378
+    - horizon: 7
+      scope: Broad
+      model: WHO grade
+      tail: Top 10%
+      capture_fraction: 0.1486486486486486
+    - horizon: 7
+      scope: Broad
+      model: WHO grade
+      tail: Top 20%
+      capture_fraction: 0.2635135135135135
+    - horizon: 7
+      scope: Broad
+      model: WHO grade
+      tail: Top 33%
+      capture_fraction: 0.4189189189189189
+    - horizon: 7
+      scope: Broad
+      model: Integrated grade
+      tail: Top 10%
+      capture_fraction: 0.1655405405405405
+    - horizon: 7
+      scope: Broad
+      model: Integrated grade
+      tail: Top 20%
+      capture_fraction: 0.3175675675675675
+    - horizon: 7
+      scope: Broad
+      model: Integrated grade
+      tail: Top 33%
+      capture_fraction: 0.4628378378378378
+    - horizon: 7
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 10%
+      capture_fraction: 0.1655405405405405
+    - horizon: 7
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 20%
+      capture_fraction: 0.3141891891891892
+    - horizon: 7
+      scope: Broad
+      model: Breakpoint panel (8 windows)
+      tail: Top 33%
+      capture_fraction: 0.4695945945945945
+    - horizon: 7
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 10%
+      capture_fraction: 0.152027027027027
+    - horizon: 7
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 20%
+      capture_fraction: 0.3108108108108108
+    - horizon: 7
+      scope: Broad
+      model: Arm-level SCNA
+      tail: Top 33%
+      capture_fraction: 0.5033783783783784
+    - horizon: 7
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 10%
+      capture_fraction: 0.1621621621621621
+    - horizon: 7
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 20%
+      capture_fraction: 0.3209459459459459
+    - horizon: 7
+      scope: Broad
+      model: SCNA + breakpoint panel
+      tail: Top 33%
+      capture_fraction: 0.5
+    - horizon: 7
+      scope: Restricted
+      model: WHO grade
+      tail: Top 10%
+      capture_fraction: 0.2093023255813953
+    - horizon: 7
+      scope: Restricted
+      model: WHO grade
+      tail: Top 20%
+      capture_fraction: 0.3255813953488372
+    - horizon: 7
+      scope: Restricted
+      model: WHO grade
+      tail: Top 33%
+      capture_fraction: 0.4651162790697674
+    - horizon: 7
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 10%
+      capture_fraction: 0.3255813953488372
+    - horizon: 7
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 20%
+      capture_fraction: 0.4651162790697674
+    - horizon: 7
+      scope: Restricted
+      model: Integrated grade
+      tail: Top 33%
+      capture_fraction: 0.6744186046511628
+    - horizon: 7
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 10%
+      capture_fraction: 0.2558139534883721
+    - horizon: 7
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 20%
+      capture_fraction: 0.4651162790697674
+    - horizon: 7
+      scope: Restricted
+      model: Breakpoint panel (8 windows)
+      tail: Top 33%
+      capture_fraction: 0.5813953488372093
+    - horizon: 7
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 10%
+      capture_fraction: 0.2558139534883721
+    - horizon: 7
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 20%
+      capture_fraction: 0.4651162790697674
+    - horizon: 7
+      scope: Restricted
+      model: Arm-level SCNA
+      tail: Top 33%
+      capture_fraction: 0.627906976744186
+    - horizon: 7
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 10%
+      capture_fraction: 0.3023255813953488
+    - horizon: 7
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 20%
+      capture_fraction: 0.4883720930232558
+    - horizon: 7
+      scope: Restricted
+      model: SCNA + breakpoint panel
+      tail: Top 33%
+      capture_fraction: 0.7209302325581395
+  panel_size_sweep:
+    source_file: results/reference/hotlist_performance.csv
+    generating_script: analyses/02_discover_hotlist.py
+    description: Panel AUC as a function of k (windows selected per fold)
+    records:
+    - horizon: 3
+      model: SCNA_alone
+      k: 0
+      n: 904
+      events: 204
+      auc: 0.77
+    - horizon: 3
+      model: WHO
+      k: 0
+      n: 904
+      events: 204
+      auc: 0.69
+    - horizon: 3
+      model: integrated_grade
+      k: 0
+      n: 904
+      events: 204
+      auc: 0.766
+    - horizon: 3
+      model: windows_only_k3
+      k: 3
+      n: 904
+      events: 204
+      auc: 0.688
+    - horizon: 3
+      model: SCNA+windows_k3
+      k: 3
+      n: 904
+      events: 204
+      auc: 0.772
+    - horizon: 3
+      model: windows_only_k5
+      k: 5
+      n: 904
+      events: 204
+      auc: 0.694
+    - horizon: 3
+      model: SCNA+windows_k5
+      k: 5
+      n: 904
+      events: 204
+      auc: 0.772
+    - horizon: 3
+      model: windows_only_k8
+      k: 8
+      n: 904
+      events: 204
+      auc: 0.698
+    - horizon: 3
+      model: SCNA+windows_k8
+      k: 8
+      n: 904
+      events: 204
+      auc: 0.77
+    - horizon: 3
+      model: windows_only_k15
+      k: 15
+      n: 904
+      events: 204
+      auc: 0.708
+    - horizon: 3
+      model: SCNA+windows_k15
+      k: 15
+      n: 904
+      events: 204
+      auc: 0.767
+    - horizon: 5
+      model: SCNA_alone
+      k: 0
+      n: 674
+      events: 264
+      auc: 0.759
+    - horizon: 5
+      model: WHO
+      k: 0
+      n: 674
+      events: 264
+      auc: 0.656
+    - horizon: 5
+      model: integrated_grade
+      k: 0
+      n: 674
+      events: 264
+      auc: 0.735
+    - horizon: 5
+      model: windows_only_k3
+      k: 3
+      n: 674
+      events: 264
+      auc: 0.67
+    - horizon: 5
+      model: SCNA+windows_k3
+      k: 3
+      n: 674
+      events: 264
+      auc: 0.771
+    - horizon: 5
+      model: windows_only_k5
+      k: 5
+      n: 674
+      events: 264
+      auc: 0.705
+    - horizon: 5
+      model: SCNA+windows_k5
+      k: 5
+      n: 674
+      events: 264
+      auc: 0.774
+    - horizon: 5
+      model: windows_only_k8
+      k: 8
+      n: 674
+      events: 264
+      auc: 0.726
+    - horizon: 5
+      model: SCNA+windows_k8
+      k: 8
+      n: 674
+      events: 264
+      auc: 0.777
+    - horizon: 5
+      model: windows_only_k15
+      k: 15
+      n: 674
+      events: 264
+      auc: 0.742
+    - horizon: 5
+      model: SCNA+windows_k15
+      k: 15
+      n: 674
+      events: 264
+      auc: 0.777
+    - horizon: 7
+      model: SCNA_alone
+      k: 0
+      n: 514
+      events: 296
+      auc: 0.744
+    - horizon: 7
+      model: WHO
+      k: 0
+      n: 514
+      events: 296
+      auc: 0.635
+    - horizon: 7
+      model: integrated_grade
+      k: 0
+      n: 514
+      events: 296
+      auc: 0.733
+    - horizon: 7
+      model: windows_only_k3
+      k: 3
+      n: 514
+      events: 296
+      auc: 0.675
+    - horizon: 7
+      model: SCNA+windows_k3
+      k: 3
+      n: 514
+      events: 296
+      auc: 0.75
+    - horizon: 7
+      model: windows_only_k5
+      k: 5
+      n: 514
+      events: 296
+      auc: 0.712
+    - horizon: 7
+      model: SCNA+windows_k5
+      k: 5
+      n: 514
+      events: 296
+      auc: 0.756
+    - horizon: 7
+      model: windows_only_k8
+      k: 8
+      n: 514
+      events: 296
+      auc: 0.74
+    - horizon: 7
+      model: SCNA+windows_k8
+      k: 8
+      n: 514
+      events: 296
+      auc: 0.763
+    - horizon: 7
+      model: windows_only_k15
+      k: 15
+      n: 514
+      events: 296
+      auc: 0.755
+    - horizon: 7
+      model: SCNA+windows_k15
+      k: 15
+      n: 514
+      events: 296
+      auc: 0.76
+  restricted_transport:
+    source_file: results/reference/hotlist_transport.csv
+    generating_script: analyses/_hotlist_transport.py
+    description: Broad out-of-fold scores transported to the restricted subset
+    records:
+    - horizon: 3
+      scope: broad
+      n: 904
+      events: 204
+      auc_windows_only: 0.6998634453781513
+      auc_scna: 0.7677591036414566
+      auc_scna_plus_8windows: 0.7787570028011204
+      delta: 0.0109978991596637
+      locked_scna: .nan
+      locked_full: .nan
+    - horizon: 3
+      scope: restricted
+      n: 387
+      events: 22
+      auc_windows_only: 0.7160647571606475
+      auc_scna: 0.7797011207970113
+      auc_scna_plus_8windows: 0.8034869240348692
+      delta: 0.0237858032378579
+      locked_scna: 0.7792
+      locked_full: 0.7866
+    - horizon: 5
+      scope: broad
+      n: 674
+      events: 264
+      auc_windows_only: 0.7298318551367332
+      auc_scna: 0.7567766075388027
+      auc_scna_plus_8windows: 0.7816611234294162
+      delta: 0.0248845158906134
+      locked_scna: .nan
+      locked_full: .nan
+    - horizon: 5
+      scope: restricted
+      n: 248
+      events: 37
+      auc_windows_only: 0.7328038939413347
+      auc_scna: 0.7557320353528885
+      auc_scna_plus_8windows: 0.8350198539771999
+      delta: 0.0792878186243114
+      locked_scna: 0.7601
+      locked_full: 0.8167
+    - horizon: 7
+      scope: broad
+      n: 514
+      events: 296
+      auc_windows_only: 0.7474197247706421
+      auc_scna: 0.7383926357550211
+      auc_scna_plus_8windows: 0.7739895859161914
+      delta: 0.0355969501611702
+      locked_scna: .nan
+      locked_full: .nan
+    - horizon: 7
+      scope: restricted
+      n: 155
+      events: 43
+      auc_windows_only: 0.7454318936877077
+      auc_scna: 0.6916528239202658
+      auc_scna_plus_8windows: 0.7703488372093023
+      delta: 0.0786960132890364
+      locked_scna: 0.7205
+      locked_full: 0.795
+  feature_set_search:
+    source_file: results/reference/maximize_search.csv
+    generating_script: analyses/03_full_ladder.py
+    records:
+    - horizon: 3
+      config: scna
+      model: enet
+      n: 904
+      events: 204
+      n_features: 47
+      mean_auc: 0.778155462184874
+    - horizon: 3
+      config: scna
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 47
+      mean_auc: 0.7778053221288517
+    - horizon: 3
+      config: scna
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 47
+      mean_auc: 0.7861855742296918
+    - horizon: 3
+      config: scna+arch
+      model: enet
+      n: 904
+      events: 204
+      n_features: 61
+      mean_auc: 0.7786253501400561
+    - horizon: 3
+      config: scna+arch
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 61
+      mean_auc: 0.773171568627451
+    - horizon: 3
+      config: scna+arch
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 61
+      mean_auc: 0.7635644257703081
+    - horizon: 3
+      config: scna+arch+hot
+      model: enet
+      n: 904
+      events: 204
+      n_features: 65
+      mean_auc: 0.783922268907563
+    - horizon: 3
+      config: scna+arch+hot
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 65
+      mean_auc: 0.7766827731092437
+    - horizon: 3
+      config: scna+arch+hot
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 65
+      mean_auc: 0.7663956582633054
+    - horizon: 3
+      config: scna+arch+hot+amp
+      model: enet
+      n: 904
+      events: 204
+      n_features: 77
+      mean_auc: 0.7781939775910365
+    - horizon: 3
+      config: scna+arch+hot+amp
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 77
+      mean_auc: 0.7671904761904761
+    - horizon: 3
+      config: scna+arch+hot+amp
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 77
+      mean_auc: 0.7548627450980392
+    - horizon: 3
+      config: scna+arch+hot+amp+allelic
+      model: enet
+      n: 904
+      events: 204
+      n_features: 86
+      mean_auc: 0.7755280112044818
+    - horizon: 3
+      config: scna+arch+hot+amp+allelic
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 86
+      mean_auc: 0.7630910364145659
+    - horizon: 3
+      config: scna+arch+hot+amp+allelic
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 86
+      mean_auc: 0.7474439775910364
+    - horizon: 3
+      config: scna+arch+hot+amp+allelic+dens
+      model: enet
+      n: 904
+      events: 204
+      n_features: 92
+      mean_auc: 0.7726680672268907
+    - horizon: 3
+      config: scna+arch+hot+amp+allelic+dens
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 92
+      mean_auc: 0.7596484593837534
+    - horizon: 3
+      config: scna+arch+hot+amp+allelic+dens
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 92
+      mean_auc: 0.7533921568627451
+    - horizon: 3
+      config: ALL_genomic
+      model: enet
+      n: 904
+      events: 204
+      n_features: 479
+      mean_auc: 0.6771036414565825
+    - horizon: 3
+      config: ALL_genomic
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 479
+      mean_auc: 0.6406820728291316
+    - horizon: 3
+      config: ALL_genomic
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 479
+      mean_auc: 0.7456848739495798
+    - horizon: 3
+      config: clin+scna
+      model: enet
+      n: 904
+      events: 204
+      n_features: 52
+      mean_auc: 0.8455413165266107
+    - horizon: 3
+      config: clin+scna
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 52
+      mean_auc: 0.8416274509803922
+    - horizon: 3
+      config: clin+scna
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 52
+      mean_auc: 0.8479817927170868
+    - horizon: 3
+      config: clin+scna+arch+hot
+      model: enet
+      n: 904
+      events: 204
+      n_features: 70
+      mean_auc: 0.8451302521008405
+    - horizon: 3
+      config: clin+scna+arch+hot
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 70
+      mean_auc: 0.8373879551820729
+    - horizon: 3
+      config: clin+scna+arch+hot
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 70
+      mean_auc: 0.8381302521008405
+    - horizon: 3
+      config: clin+ALL_genomic
+      model: enet
+      n: 904
+      events: 204
+      n_features: 484
+      mean_auc: 0.755452380952381
+    - horizon: 3
+      config: clin+ALL_genomic
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 484
+      mean_auc: 0.7086428571428571
+    - horizon: 3
+      config: clin+ALL_genomic
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 484
+      mean_auc: 0.8238333333333333
+    - horizon: 3
+      config: clin+enriched_nobins
+      model: enet
+      n: 904
+      events: 204
+      n_features: 97
+      mean_auc: 0.8370476190476192
+    - horizon: 3
+      config: clin+enriched_nobins
+      model: ridge
+      n: 904
+      events: 204
+      n_features: 97
+      mean_auc: 0.8234593837535013
+    - horizon: 3
+      config: clin+enriched_nobins
+      model: gbm
+      n: 904
+      events: 204
+      n_features: 97
+      mean_auc: 0.8256218487394957
+    - horizon: 5
+      config: scna
+      model: enet
+      n: 674
+      events: 264
+      n_features: 47
+      mean_auc: 0.7711474501108648
+    - horizon: 5
+      config: scna
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 47
+      mean_auc: 0.7662684774575019
+    - horizon: 5
+      config: scna
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 47
+      mean_auc: 0.7593246489283074
+    - horizon: 5
+      config: scna+arch
+      model: enet
+      n: 674
+      events: 264
+      n_features: 61
+      mean_auc: 0.7780386178861789
+    - horizon: 5
+      config: scna+arch
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 61
+      mean_auc: 0.7739181448632667
+    - horizon: 5
+      config: scna+arch
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 61
+      mean_auc: 0.7533481152993348
+    - horizon: 5
+      config: scna+arch+hot
+      model: enet
+      n: 674
+      events: 264
+      n_features: 65
+      mean_auc: 0.8027965631929048
+    - horizon: 5
+      config: scna+arch+hot
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 65
+      mean_auc: 0.7973069105691057
+    - horizon: 5
+      config: scna+arch+hot
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 65
+      mean_auc: 0.7777586844050259
+    - horizon: 5
+      config: scna+arch+hot+amp
+      model: enet
+      n: 674
+      events: 264
+      n_features: 77
+      mean_auc: 0.812880635624538
+    - horizon: 5
+      config: scna+arch+hot+amp
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 77
+      mean_auc: 0.8063137472283813
+    - horizon: 5
+      config: scna+arch+hot+amp
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 77
+      mean_auc: 0.7944087213599409
+    - horizon: 5
+      config: scna+arch+hot+amp+allelic
+      model: enet
+      n: 674
+      events: 264
+      n_features: 86
+      mean_auc: 0.8118514412416852
+    - horizon: 5
+      config: scna+arch+hot+amp+allelic
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 86
+      mean_auc: 0.8039042867701405
+    - horizon: 5
+      config: scna+arch+hot+amp+allelic
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 86
+      mean_auc: 0.7956263858093127
+    - horizon: 5
+      config: scna+arch+hot+amp+allelic+dens
+      model: enet
+      n: 674
+      events: 264
+      n_features: 92
+      mean_auc: 0.8132631189948263
+    - horizon: 5
+      config: scna+arch+hot+amp+allelic+dens
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 92
+      mean_auc: 0.8044475240206947
+    - horizon: 5
+      config: scna+arch+hot+amp+allelic+dens
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 92
+      mean_auc: 0.7921618625277163
+    - horizon: 5
+      config: ALL_genomic
+      model: enet
+      n: 674
+      events: 264
+      n_features: 479
+      mean_auc: 0.7705007390983001
+    - horizon: 5
+      config: ALL_genomic
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 479
+      mean_auc: 0.7483518107908352
+    - horizon: 5
+      config: ALL_genomic
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 479
+      mean_auc: 0.7855460088691796
+    - horizon: 5
+      config: clin+scna
+      model: enet
+      n: 674
+      events: 264
+      n_features: 52
+      mean_auc: 0.8173087583148559
+    - horizon: 5
+      config: clin+scna
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 52
+      mean_auc: 0.8124972283813747
+    - horizon: 5
+      config: clin+scna
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 52
+      mean_auc: 0.8174334811529935
+    - horizon: 5
+      config: clin+scna+arch+hot
+      model: enet
+      n: 674
+      events: 264
+      n_features: 70
+      mean_auc: 0.8397856614929786
+    - horizon: 5
+      config: clin+scna+arch+hot
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 70
+      mean_auc: 0.8340133037694013
+    - horizon: 5
+      config: clin+scna+arch+hot
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 70
+      mean_auc: 0.8338904286770139
+    - horizon: 5
+      config: clin+ALL_genomic
+      model: enet
+      n: 674
+      events: 264
+      n_features: 484
+      mean_auc: 0.8087657058388764
+    - horizon: 5
+      config: clin+ALL_genomic
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 484
+      mean_auc: 0.7811492978566148
+    - horizon: 5
+      config: clin+ALL_genomic
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 484
+      mean_auc: 0.8301552106430155
+    - horizon: 5
+      config: clin+enriched_nobins
+      model: enet
+      n: 674
+      events: 264
+      n_features: 97
+      mean_auc: 0.845920177383592
+    - horizon: 5
+      config: clin+enriched_nobins
+      model: ridge
+      n: 674
+      events: 264
+      n_features: 97
+      mean_auc: 0.8385162601626017
+    - horizon: 5
+      config: clin+enriched_nobins
+      model: gbm
+      n: 674
+      events: 264
+      n_features: 97
+      mean_auc: 0.834970436067997
+    - horizon: 7
+      config: scna
+      model: enet
+      n: 514
+      events: 296
+      n_features: 47
+      mean_auc: 0.7736021572030747
+    - horizon: 7
+      config: scna
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 47
+      mean_auc: 0.7631679271014133
+    - horizon: 7
+      config: scna
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 47
+      mean_auc: 0.7667214232581205
+    - horizon: 7
+      config: scna+arch
+      model: enet
+      n: 514
+      events: 296
+      n_features: 61
+      mean_auc: 0.7779816513761468
+    - horizon: 7
+      config: scna+arch
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 61
+      mean_auc: 0.7667431192660551
+    - horizon: 7
+      config: scna+arch
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 61
+      mean_auc: 0.7598344904537565
+    - horizon: 7
+      config: scna+arch+hot
+      model: enet
+      n: 514
+      events: 296
+      n_features: 65
+      mean_auc: 0.7963333746590628
+    - horizon: 7
+      config: scna+arch+hot
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 65
+      mean_auc: 0.7855225638482519
+    - horizon: 7
+      config: scna+arch+hot
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 65
+      mean_auc: 0.784998760228118
+    - horizon: 7
+      config: scna+arch+hot+amp
+      model: enet
+      n: 514
+      events: 296
+      n_features: 77
+      mean_auc: 0.8065088023803619
+    - horizon: 7
+      config: scna+arch+hot+amp
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 77
+      mean_auc: 0.7963829655343417
+    - horizon: 7
+      config: scna+arch+hot+amp
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 77
+      mean_auc: 0.7893038680882718
+    - horizon: 7
+      config: scna+arch+hot+amp+allelic
+      model: enet
+      n: 514
+      events: 296
+      n_features: 86
+      mean_auc: 0.8113315150012397
+    - horizon: 7
+      config: scna+arch+hot+amp+allelic
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 86
+      mean_auc: 0.8009608232085297
+    - horizon: 7
+      config: scna+arch+hot+amp+allelic
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 86
+      mean_auc: 0.7877758492437391
+    - horizon: 7
+      config: scna+arch+hot+amp+allelic+dens
+      model: enet
+      n: 514
+      events: 296
+      n_features: 92
+      mean_auc: 0.8093447805603768
+    - horizon: 7
+      config: scna+arch+hot+amp+allelic+dens
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 92
+      mean_auc: 0.7991538556905531
+    - horizon: 7
+      config: scna+arch+hot+amp+allelic+dens
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 92
+      mean_auc: 0.7897749814034218
+    - horizon: 7
+      config: ALL_genomic
+      model: enet
+      n: 514
+      events: 296
+      n_features: 479
+      mean_auc: 0.7762118770146292
+    - horizon: 7
+      config: ALL_genomic
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 479
+      mean_auc: 0.7499256136870815
+    - horizon: 7
+      config: ALL_genomic
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 479
+      mean_auc: 0.7926791470369452
+    - horizon: 7
+      config: clin+scna
+      model: enet
+      n: 514
+      events: 296
+      n_features: 52
+      mean_auc: 0.815658318869328
+    - horizon: 7
+      config: clin+scna
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 52
+      mean_auc: 0.8053976568311431
+    - horizon: 7
+      config: clin+scna
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 52
+      mean_auc: 0.8235742623357302
+    - horizon: 7
+      config: clin+scna+arch+hot
+      model: enet
+      n: 514
+      events: 296
+      n_features: 70
+      mean_auc: 0.8310128936275725
+    - horizon: 7
+      config: clin+scna+arch+hot
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 70
+      mean_auc: 0.8210947185717827
+    - horizon: 7
+      config: clin+scna+arch+hot
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 70
+      mean_auc: 0.8314809075130176
+    - horizon: 7
+      config: clin+ALL_genomic
+      model: enet
+      n: 514
+      events: 296
+      n_features: 484
+      mean_auc: 0.8106434416067442
+    - horizon: 7
+      config: clin+ALL_genomic
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 484
+      mean_auc: 0.7858913959831392
+    - horizon: 7
+      config: clin+ALL_genomic
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 484
+      mean_auc: 0.8337589883461443
+    - horizon: 7
+      config: clin+enriched_nobins
+      model: enet
+      n: 514
+      events: 296
+      n_features: 97
+      mean_auc: 0.8409465658318869
+    - horizon: 7
+      config: clin+enriched_nobins
+      model: ridge
+      n: 514
+      events: 296
+      n_features: 97
+      mean_auc: 0.8287131167865113
+    - horizon: 7
+      config: clin+enriched_nobins
+      model: gbm
+      n: 514
+      events: 296
+      n_features: 97
+      mean_auc: 0.8354822712620878
 limitations:
 - 'Internal validation only: not yet validated in an independent cohort of comparable copy-number resolution.
   One attempt on a methylation-derived cohort (GSE189521) degraded, but that is a resolution mismatch

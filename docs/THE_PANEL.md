@@ -38,6 +38,25 @@ panel look like a fixed nine-window list. The headline window is more stable, no
 less, at the k used for performance: at k = 8 the chr1p 0.95–1.00 window is
 selected in **100% / 96% / 96%** of folds at 3 / 5 / 7 years.
 
+## The frozen panel (for external validation)
+
+Discovery is a *procedure*; validation needs a *marker*. The windows above are
+therefore frozen in [`../reference/menibreak_panel_v1.csv`](../reference/menibreak_panel_v1.csv),
+derived reproducibly by
+[`../reference/build_panel_definition.py`](../reference/build_panel_definition.py)
+and consumed by `apply/validate_fixed_panel.py`, which scores them without
+learning anything from the new cohort.
+
+**A discrepancy worth stating.** The reproducible rule — *union over horizons of
+windows selected in ≥40% of folds at k = 5* — admits **eleven** windows, but the
+report published **nine**. The rule additionally admits `bp_14q_b18` (0.40 at
+7 y) and `bp_2q_b14` (0.44 at 5 y), while the published table keeps `bp_3p_b10`
+and `bp_6q_b19` at that same 0.40 frequency. So the published nine are not
+recoverable from any single threshold on the retained output. Rather than
+silently choose one, both are shipped and labelled by the `in_published_table`
+column: `--panel-set published` (default, the 9 that were claimed) and
+`--panel-set rule` (the 11 the rule admits).
+
 ## The headline window
 
 The **chr1p pericentromeric window, chr1:118.75–125.00 Mb**, is the single most

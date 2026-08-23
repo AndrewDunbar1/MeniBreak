@@ -90,11 +90,53 @@ def main() -> int:
                 "produces": "external methylation-cohort validation (negative)"},
         },
         "external_use": {
-            "entry_point": "apply/menibreak_panel.py",
             "input": "a generic SEG (sample_id, chromosome, start, end, event) + outcomes",
             "spec": "docs/INPUT_SPEC.md",
             "quickstart": "docs/QUICKSTART.md",
-            "tested_on": "data/example (synthetic); verified to run end-to-end and recover the planted 1p window",
+            "entry_points": {
+                "apply/validate_fixed_panel.py": {
+                    "question": "Does the PUBLISHED panel discriminate recurrence in my cohort?",
+                    "windows": "fixed, read from reference/menibreak_panel_v1.csv; nothing learned from your data",
+                    "scoring": {
+                        "count": "risk = number of panel windows containing a breakpoint; ZERO fitted parameters (frozen marker)",
+                        "refit": "fixed windows as features, coefficients refit under patient-grouped CV (validates the window set)",
+                    },
+                    "panel_sets": {"published": 9, "rule": 11},
+                },
+                "apply/menibreak_panel.py": {
+                    "question": "Does the discovery METHOD find prognostic windows in my cohort?",
+                    "windows": "re-selected inside each training fold of your own data",
+                },
+            },
+            "panel_definition": {
+                "file": "reference/menibreak_panel_v1.csv",
+                "generated_by": "reference/build_panel_definition.py",
+                "rule": "union over horizons of windows selected in >=40% of training folds at k=5",
+                "published_windows": 9,
+                "rule_windows": 11,
+                "discrepancy": (
+                    "The reproducible rule admits 11 windows; the report published 9. It "
+                    "additionally admits bp_14q_b18 (0.40 at 7y) and bp_2q_b14 (0.44 at 5y), "
+                    "while the published table keeps bp_3p_b10 and bp_6q_b19 at the same 0.40. "
+                    "The published nine are therefore not recoverable from any single "
+                    "threshold; both sets are shipped and labelled via `in_published_table`."
+                ),
+            },
+            "tested_on": "data/example (synthetic); both entry points verified end-to-end; discovery recovers the planted 1p window",
+        },
+        "tests": {
+            "suite": "tests/ (pytest)",
+            "count": 53,
+            "covers": [
+                "patient-grouped folds keep a patient's tumours together",
+                "every tumour is tested exactly once; splits deterministic under seed",
+                "the leakage detector catches a deliberately bad split (negative control)",
+                "the segment schema declares no outcome columns",
+                "arm tiling is gapless; centromere-spanning segments split; overlaps reported",
+                "breakpoint features stay out of the arm-level SCNA feature group",
+                "exactly five clinical covariates; grade is a comparator, never a predictor",
+            ],
+            "run": "pip install -r requirements-dev.txt && python -m pytest tests/ -q",
         },
         "reproduction_status": {
             "who_ig_comparators": "EXACT — independently reproduced locally",
@@ -120,6 +162,24 @@ def main() -> int:
             "external_validation": {"source_file": "results/reference/external_validation.csv",
                                     "generating_script": "analyses/06_external_validation.py",
                                     "records": records("external_validation.csv", round_auc=True)},
+            "elevated_grade_rescue": {"source_file": "results/reference/clinical_metrics_elevated_grade.csv",
+                                      "generating_script": "analyses/04_scna_plus_panel.py",
+                                      "description": "Fraction of never-recurring elevated-grade tumours correctly called low risk",
+                                      "records": records("clinical_metrics_elevated_grade.csv")},
+            "high_risk_tail_capture": {"source_file": "results/reference/clinical_metrics_capture.csv",
+                                       "generating_script": "analyses/04_scna_plus_panel.py",
+                                       "records": records("clinical_metrics_capture.csv")},
+            "panel_size_sweep": {"source_file": "results/reference/hotlist_performance.csv",
+                                 "generating_script": "analyses/02_discover_hotlist.py",
+                                 "description": "Panel AUC as a function of k (windows selected per fold)",
+                                 "records": records("hotlist_performance.csv", round_auc=True)},
+            "restricted_transport": {"source_file": "results/reference/hotlist_transport.csv",
+                                     "generating_script": "analyses/_hotlist_transport.py",
+                                     "description": "Broad out-of-fold scores transported to the restricted subset",
+                                     "records": records("hotlist_transport.csv")},
+            "feature_set_search": {"source_file": "results/reference/maximize_search.csv",
+                                   "generating_script": "analyses/03_full_ladder.py",
+                                   "records": records("maximize_search.csv")},
         },
         "limitations": [
             "Internal validation only: not yet validated in an independent cohort of "

@@ -1,20 +1,38 @@
-name: smoke-test
+name: tests
 on: [push, pull_request]
 jobs:
-  run-panel-on-synthetic-data:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install -r requirements.txt
+      - run: pip install -r requirements-dev.txt
+
+      - name: Unit tests (leakage, harmonization, features, clinical)
+        run: python -m pytest tests/ -q
+
       - name: Regenerate synthetic cohort
         run: python data/example/generate_example.py --n 300 --seed 7 --outdir data/example
-      - name: Run the panel end-to-end
+
+      - name: Validate the fixed published panel (frozen, 0 fitted params)
+        run: |
+          python apply/validate_fixed_panel.py \
+            --segments data/example/synthetic_segments.csv \
+            --outcomes data/example/synthetic_outcomes.csv \
+            --out results/example_fixed
+
+      - name: Run the discovery pipeline end-to-end
         run: |
           python apply/menibreak_panel.py \
             --segments data/example/synthetic_segments.csv \
             --outcomes data/example/synthetic_outcomes.csv \
             --out results/example
+
+      - name: Panel definition is reproducible from the discovery output
+        run: |
+          python reference/build_panel_definition.py
+          git diff --exit-code reference/menibreak_panel_v1.csv
+
       - name: Rebuild results manifest from CSVs
         run: python build_manifest.py

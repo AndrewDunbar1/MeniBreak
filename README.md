@@ -44,29 +44,61 @@ the only marker that *improves* with horizon. The chr1p pericentromeric window
 
 ## Run it on YOUR data (external cohort)
 
-You need a segmented copy-number file and recurrence outcomes. Full walk-through:
-[`docs/QUICKSTART.md`](docs/QUICKSTART.md); input format:
+You need a segmented copy-number file and recurrence outcomes — nothing else.
+Full walk-through: [`docs/QUICKSTART.md`](docs/QUICKSTART.md); input format:
 [`docs/INPUT_SPEC.md`](docs/INPUT_SPEC.md).
+
+There are **two entry points, answering two different questions.**
+
+### 1. Validate the published panel (fixed windows)
+
+> *Does the published MeniBreak panel discriminate recurrence in my cohort?*
+
+The nine windows are **fixed**, read from
+[`reference/menibreak_panel_v1.csv`](reference/menibreak_panel_v1.csv); nothing
+about them is learned from your data. Default scoring is a plain count of panel
+windows containing a breakpoint — **zero parameters fitted on your cohort**, so
+the panel either transfers or it does not.
 
 ```bash
 pip install -r requirements.txt
 
-# 1) sanity-check on the bundled synthetic cohort (runs in ~1 min)
-python apply/menibreak_panel.py \
-    --segments data/example/synthetic_segments.csv \
-    --outcomes data/example/synthetic_outcomes.csv \
-    --out results/example
-
-# 2) then point it at your own files (same two-column contract)
-python apply/menibreak_panel.py \
+python apply/validate_fixed_panel.py \
     --segments YOUR_segments.csv --outcomes YOUR_outcomes.csv \
     --build GRCh37 --out results/your_cohort
 ```
 
-It writes `performance.csv` (the AUC ladder on your cohort), `hotlist_windows.csv`
-(the windows it discovers, in genomic coordinates), and `window_features.csv`
-(per-tumour panel occupancy). Every modelling choice matches the institutional
-analysis in `analyses/03_full_ladder.py`.
+Writes `fixed_panel_performance.csv` and `panel_window_occupancy.csv` (which of
+the fixed windows actually fire in your cohort — check this first). Use
+`--score refit` to keep the windows fixed but refit coefficients under
+patient-grouped CV, and `--panel-set rule` for the 11-window variant.
+
+### 2. Re-run the discovery method
+
+> *Does the discovery procedure find prognostic windows in my cohort?*
+
+Windows are re-selected inside each training fold of **your** data, so this
+replicates the method rather than testing the published marker.
+
+```bash
+python apply/menibreak_panel.py \
+    --segments YOUR_segments.csv --outcomes YOUR_outcomes.csv \
+    --out results/your_cohort_discovery
+```
+
+Writes `performance.csv`, `hotlist_windows.csv` (the windows *your* cohort
+selects, in genomic coordinates) and `window_features.csv`. Every modelling
+choice matches the institutional analysis in `analyses/03_full_ladder.py`.
+
+Both scripts run on the bundled synthetic cohort out of the box — start there to
+confirm your install:
+
+```bash
+python data/example/generate_example.py --n 300 --seed 7 --outdir data/example
+python apply/validate_fixed_panel.py \
+    --segments data/example/synthetic_segments.csv \
+    --outcomes data/example/synthetic_outcomes.csv --out results/example_fixed
+```
 
 ## Reproduce the institutional numbers
 
@@ -87,15 +119,17 @@ regenerate from the same code that produced the report.
 
 | Path | What it is |
 |---|---|
-| `apply/menibreak_panel.py` | **Run the panel on your own SEG** (tested entry point) |
+| `apply/validate_fixed_panel.py` | **Validate the published panel on your SEG** — fixed windows, no discovery |
+| `apply/menibreak_panel.py` | **Re-run the discovery method on your SEG** |
 | `src/` | The pipeline package: `harmonization/` (SEG → arms → breakpoints), `features/` (windows, SCNA, enriched), `evaluation/` (patient-grouped folds) |
 | `analyses/` | The six scripts that produced the report tables |
-| `results/reference/` | The verified result CSVs (match the report to the printed digit) |
-| `reference/` | Arm reference (GRCh37/GRCh38) and frozen hotspot windows |
+| `results/reference/` | The 13 verified result CSVs (match the report to the printed digit) |
+| `reference/` | Arm references (GRCh37/GRCh38), frozen hotspot windows, and the **frozen panel definition** + the script that derives it |
+| `tests/` | 53 pytest tests — patient-leakage guarantees, tiling, feature isolation ([details](tests/README.md)) |
 | `data/example/` | Synthetic cohort + generator, so everything runs offline |
-| `figures/` | Publication figures |
-| `RESULTS_MANIFEST.yaml` / `.json` | **Machine-readable index**: every result → script → output → value → status ([regenerate](build_manifest.py)) |
-| `docs/` | Input spec, quickstart, the panel, methods, provenance, limitations |
+| `figures/` | Publication figures, [with captions](figures/README.md) |
+| `RESULTS_MANIFEST.yaml` / `.json` | **Machine-readable index**: 725 result records → script → output → value → status ([regenerate](build_manifest.py)) |
+| `docs/` | Input spec, quickstart, the panel, provenance, limitations |
 
 ## Provenance
 

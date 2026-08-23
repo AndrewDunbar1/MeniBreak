@@ -14,18 +14,33 @@ pip install -r requirements.txt     # pandas, numpy, scipy, scikit-learn, pyyaml
 ## 1. Confirm it runs (bundled synthetic cohort)
 
 ```bash
+python data/example/generate_example.py --n 300 --seed 7 --outdir data/example
+
+# the validation run: fixed published panel, zero fitted parameters
+python apply/validate_fixed_panel.py \
+    --segments data/example/synthetic_segments.csv \
+    --outcomes data/example/synthetic_outcomes.csv \
+    --out results/example_fixed
+
+# the method run: rediscover windows inside your own folds
 python apply/menibreak_panel.py \
     --segments data/example/synthetic_segments.csv \
     --outcomes data/example/synthetic_outcomes.csv \
     --out results/example
 ```
 
-Expected: it derives breakpoints, builds the 20-bin window matrix, prints a
-resolution-QC line, and reports a small AUC ladder. On the synthetic data the
-panel-alone AUC rises with horizon (≈0.54 → 0.63 → 0.66), the discovery step
-recovers a chr1p pericentromeric window at selection frequency 1.0, and a QC
-warning fires because the toy data is deliberately sparse. Your real data will
-have far more breakpoints per sample.
+Expected on this synthetic cohort: breakpoints are derived, a resolution-QC line
+is printed, and both runs report an AUC ladder that **rises with horizon** — the
+fixed panel reaches ≈0.66 → 0.69 → 0.72 and the discovery run ≈0.54 → 0.63 →
+0.66, with the planted chr1p pericentromeric window recovered at selection
+frequency 1.0. A QC warning fires because the toy data is deliberately sparse;
+real data will have far more breakpoints per sample.
+
+You can also run the test suite (53 tests, ~1 s):
+
+```bash
+pip install -r requirements-dev.txt && python -m pytest tests/ -q
+```
 
 ## 2. Format your data
 
@@ -40,6 +55,33 @@ If your caller uses different event words, either recode them to
 
 ## 3. Run on your cohort
 
+### 3a. The validation run — fixed published panel (start here)
+
+This is the one that tests **our** panel. The windows come from
+`reference/menibreak_panel_v1.csv` and nothing is learned from your data; with
+the default `--score count` no parameters are fitted at all.
+
+```bash
+python apply/validate_fixed_panel.py \
+    --segments YOUR_segments.csv \
+    --outcomes YOUR_outcomes.csv \
+    --build GRCh37 \
+    --horizons 3 5 7 \
+    --out results/your_cohort
+```
+
+| File | Contents |
+|---|---|
+| `fixed_panel_performance.csv` | AUC of the fixed panel vs an arm-level SCNA reference, per horizon. |
+| `panel_window_occupancy.csv` | How often each fixed window fires in your cohort. **Read this first** — a panel window that fires in zero tumours cannot contribute, and several silent windows usually means a resolution mismatch rather than absent signal. |
+
+Useful variants: `--score refit` (fixed windows, coefficients refit under
+patient-grouped CV — a fairer test if your platform or population differs) and
+`--panel-set rule` (11 windows instead of the published 9; see
+[`THE_PANEL.md`](THE_PANEL.md)).
+
+### 3b. The method run — rediscover windows in your data
+
 ```bash
 python apply/menibreak_panel.py \
     --segments YOUR_segments.csv \
@@ -47,10 +89,15 @@ python apply/menibreak_panel.py \
     --build GRCh37 \
     --horizons 3 5 7 \
     --k 8 --repeats 5 \
-    --out results/your_cohort
+    --out results/your_cohort_discovery
 ```
 
-Outputs in `results/your_cohort/`:
+This selects windows inside your own training folds, so it answers "does the
+*method* work here?", not "does the *published panel* work here?". It is the
+right run for asking whether your cohort has its own recurrent breakpoint
+structure — and whether it agrees with ours.
+
+Outputs in `results/your_cohort_discovery/`:
 
 | File | Contents |
 |---|---|

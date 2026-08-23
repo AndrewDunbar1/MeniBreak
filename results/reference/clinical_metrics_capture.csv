@@ -1,0 +1,91 @@
+horizon,scope,model,tail,capture_fraction
+3,Broad,WHO grade,Top 10%,0.21568627450980393
+3,Broad,WHO grade,Top 20%,0.39215686274509803
+3,Broad,WHO grade,Top 33%,0.5833333333333334
+3,Broad,Integrated grade,Top 10%,0.29901960784313725
+3,Broad,Integrated grade,Top 20%,0.4803921568627451
+3,Broad,Integrated grade,Top 33%,0.6862745098039216
+3,Broad,Breakpoint panel (8 windows),Top 10%,0.20588235294117646
+3,Broad,Breakpoint panel (8 windows),Top 20%,0.38235294117647056
+3,Broad,Breakpoint panel (8 windows),Top 33%,0.5931372549019608
+3,Broad,Arm-level SCNA,Top 10%,0.2647058823529412
+3,Broad,Arm-level SCNA,Top 20%,0.5049019607843137
+3,Broad,Arm-level SCNA,Top 33%,0.7205882352941176
+3,Broad,SCNA + breakpoint panel,Top 10%,0.28431372549019607
+3,Broad,SCNA + breakpoint panel,Top 20%,0.5245098039215687
+3,Broad,SCNA + breakpoint panel,Top 33%,0.7058823529411765
+3,Restricted,WHO grade,Top 10%,0.2727272727272727
+3,Restricted,WHO grade,Top 20%,0.5
+3,Restricted,WHO grade,Top 33%,0.5454545454545454
+3,Restricted,Integrated grade,Top 10%,0.5
+3,Restricted,Integrated grade,Top 20%,0.7272727272727273
+3,Restricted,Integrated grade,Top 33%,0.7727272727272727
+3,Restricted,Breakpoint panel (8 windows),Top 10%,0.13636363636363635
+3,Restricted,Breakpoint panel (8 windows),Top 20%,0.3181818181818182
+3,Restricted,Breakpoint panel (8 windows),Top 33%,0.6363636363636364
+3,Restricted,Arm-level SCNA,Top 10%,0.45454545454545453
+3,Restricted,Arm-level SCNA,Top 20%,0.7272727272727273
+3,Restricted,Arm-level SCNA,Top 33%,0.7272727272727273
+3,Restricted,SCNA + breakpoint panel,Top 10%,0.4090909090909091
+3,Restricted,SCNA + breakpoint panel,Top 20%,0.7272727272727273
+3,Restricted,SCNA + breakpoint panel,Top 33%,0.8181818181818182
+5,Broad,WHO grade,Top 10%,0.1553030303030303
+5,Broad,WHO grade,Top 20%,0.3068181818181818
+5,Broad,WHO grade,Top 33%,0.48484848484848486
+5,Broad,Integrated grade,Top 10%,0.22727272727272727
+5,Broad,Integrated grade,Top 20%,0.39015151515151514
+5,Broad,Integrated grade,Top 33%,0.5568181818181818
+5,Broad,Breakpoint panel (8 windows),Top 10%,0.22348484848484848
+5,Broad,Breakpoint panel (8 windows),Top 20%,0.4128787878787879
+5,Broad,Breakpoint panel (8 windows),Top 33%,0.5568181818181818
+5,Broad,Arm-level SCNA,Top 10%,0.21212121212121213
+5,Broad,Arm-level SCNA,Top 20%,0.39015151515151514
+5,Broad,Arm-level SCNA,Top 33%,0.6022727272727273
+5,Broad,SCNA + breakpoint panel,Top 10%,0.23106060606060605
+5,Broad,SCNA + breakpoint panel,Top 20%,0.42045454545454547
+5,Broad,SCNA + breakpoint panel,Top 33%,0.6212121212121212
+5,Restricted,WHO grade,Top 10%,0.21621621621621623
+5,Restricted,WHO grade,Top 20%,0.43243243243243246
+5,Restricted,WHO grade,Top 33%,0.5135135135135135
+5,Restricted,Integrated grade,Top 10%,0.40540540540540543
+5,Restricted,Integrated grade,Top 20%,0.5945945945945946
+5,Restricted,Integrated grade,Top 33%,0.7297297297297297
+5,Restricted,Breakpoint panel (8 windows),Top 10%,0.35135135135135137
+5,Restricted,Breakpoint panel (8 windows),Top 20%,0.5135135135135135
+5,Restricted,Breakpoint panel (8 windows),Top 33%,0.7297297297297297
+5,Restricted,Arm-level SCNA,Top 10%,0.35135135135135137
+5,Restricted,Arm-level SCNA,Top 20%,0.6486486486486487
+5,Restricted,Arm-level SCNA,Top 33%,0.6756756756756757
+5,Restricted,SCNA + breakpoint panel,Top 10%,0.3783783783783784
+5,Restricted,SCNA + breakpoint panel,Top 20%,0.5675675675675675
+5,Restricted,SCNA + breakpoint panel,Top 33%,0.8378378378378378
+7,Broad,WHO grade,Top 10%,0.14864864864864866
+7,Broad,WHO grade,Top 20%,0.2635135135135135
+7,Broad,WHO grade,Top 33%,0.4189189189189189
+7,Broad,Integrated grade,Top 10%,0.16554054054054054
+7,Broad,Integrated grade,Top 20%,0.31756756756756754
+7,Broad,Integrated grade,Top 33%,0.46283783783783783
+7,Broad,Breakpoint panel (8 windows),Top 10%,0.16554054054054054
+7,Broad,Breakpoint panel (8 windows),Top 20%,0.3141891891891892
+7,Broad,Breakpoint panel (8 windows),Top 33%,0.46959459459459457
+7,Broad,Arm-level SCNA,Top 10%,0.15202702702702703
+7,Broad,Arm-level SCNA,Top 20%,0.3108108108108108
+7,Broad,Arm-level SCNA,Top 33%,0.5033783783783784
+7,Broad,SCNA + breakpoint panel,Top 10%,0.16216216216216217
+7,Broad,SCNA + breakpoint panel,Top 20%,0.32094594594594594
+7,Broad,SCNA + breakpoint panel,Top 33%,0.5
+7,Restricted,WHO grade,Top 10%,0.20930232558139536
+7,Restricted,WHO grade,Top 20%,0.32558139534883723
+7,Restricted,WHO grade,Top 33%,0.46511627906976744
+7,Restricted,Integrated grade,Top 10%,0.32558139534883723
+7,Restricted,Integrated grade,Top 20%,0.46511627906976744
+7,Restricted,Integrated grade,Top 33%,0.6744186046511628
+7,Restricted,Breakpoint panel (8 windows),Top 10%,0.2558139534883721
+7,Restricted,Breakpoint panel (8 windows),Top 20%,0.46511627906976744
+7,Restricted,Breakpoint panel (8 windows),Top 33%,0.5813953488372093
+7,Restricted,Arm-level SCNA,Top 10%,0.2558139534883721
+7,Restricted,Arm-level SCNA,Top 20%,0.46511627906976744
+7,Restricted,Arm-level SCNA,Top 33%,0.627906976744186
+7,Restricted,SCNA + breakpoint panel,Top 10%,0.3023255813953488
+7,Restricted,SCNA + breakpoint panel,Top 20%,0.4883720930232558
+7,Restricted,SCNA + breakpoint panel,Top 33%,0.7209302325581395

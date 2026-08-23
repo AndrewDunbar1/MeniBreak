@@ -1,5 +1,41 @@
 # Changelog
 
+## clean-python-release — fixed-panel validation, tests, figure captions (2026-08-23)
+
+Closes the three gaps identified in the post-release audit.
+
+### Added
+- **`apply/validate_fixed_panel.py`** — validate the *published* panel on an
+  external cohort with **fixed** windows and no discovery. Default scoring is an
+  unweighted count of panel windows containing a breakpoint, so **zero
+  parameters are fitted on the new cohort**; `--score refit` keeps the windows
+  fixed and refits coefficients under patient-grouped CV. Reports per-window
+  occupancy so a silent window is visible rather than hidden.
+- **`reference/menibreak_panel_v1.csv`** — the frozen panel definition, derived
+  reproducibly by `reference/build_panel_definition.py` and re-checked in CI.
+- **`tests/` — 53 pytest tests**, including the patient-leakage guarantees
+  (patients never split across folds; every tumour tested once; splits
+  deterministic; the leakage detector fails a deliberately bad split), arm-tiling
+  correctness, and the guards that keep breakpoint information out of the
+  arm-level SCNA feature group and grade out of any model as a predictor.
+- `figures/README.md` with a caption for each of the nine figures.
+- Six further verified result tables (elevated-grade rescue, tail capture, panel
+  size sweep, restricted transport, feature-set search).
+- `requirements-dev.txt`; CI now runs the tests, both entry points, and asserts
+  the panel definition is reproducible from the discovery output.
+
+### Changed
+- `RESULTS_MANIFEST` now indexes **725 result records across 11 tables** (was 437
+  across 6) and documents both entry points and the panel definition.
+
+### Documented
+- **A discrepancy in the published panel.** The reproducible rule (windows
+  selected in ≥40% of folds at k = 5) admits **11** windows; the report published
+  **9**, additionally admitting `bp_14q_b18` (0.40) and `bp_2q_b14` (0.44) while
+  keeping `bp_3p_b10` and `bp_6q_b19` at that same 0.40. The published nine are
+  therefore not recoverable from any single threshold. Both sets are shipped and
+  labelled (`in_published_table`); `--panel-set` selects between them.
+
 ## clean-python-release — audit pass (2026-08-23)
 
 Documentation and metadata audit; no analysis code or result values changed.

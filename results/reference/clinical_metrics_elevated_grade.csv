@@ -1,0 +1,61 @@
+horizon,scope,model,grade_system,low_risk_n,total,fraction_below_threshold,achieved_sensitivity
+3,Broad,WHO grade,WHO grade 2/3,0,196,0.0,1.0
+3,Broad,WHO grade,Integrated grade 2/3,0,180,0.0,1.0
+3,Broad,Integrated grade,WHO grade 2/3,0,196,0.0,1.0
+3,Broad,Integrated grade,Integrated grade 2/3,0,180,0.0,1.0
+3,Broad,Breakpoint panel (8 windows),WHO grade 2/3,71,196,0.3622448979591837,0.803921568627451
+3,Broad,Breakpoint panel (8 windows),Integrated grade 2/3,28,180,0.15555555555555556,0.803921568627451
+3,Broad,Arm-level SCNA,WHO grade 2/3,68,196,0.3469387755102041,0.803921568627451
+3,Broad,Arm-level SCNA,Integrated grade 2/3,8,180,0.044444444444444446,0.803921568627451
+3,Broad,SCNA + breakpoint panel,WHO grade 2/3,85,196,0.4336734693877551,0.803921568627451
+3,Broad,SCNA + breakpoint panel,Integrated grade 2/3,22,180,0.12222222222222222,0.803921568627451
+3,Restricted,WHO grade,WHO grade 2/3,0,73,0.0,1.0
+3,Restricted,WHO grade,Integrated grade 2/3,0,62,0.0,1.0
+3,Restricted,Integrated grade,WHO grade 2/3,0,73,0.0,1.0
+3,Restricted,Integrated grade,Integrated grade 2/3,0,62,0.0,1.0
+3,Restricted,Breakpoint panel (8 windows),WHO grade 2/3,33,73,0.4520547945205479,0.8181818181818182
+3,Restricted,Breakpoint panel (8 windows),Integrated grade 2/3,10,62,0.16129032258064516,0.8181818181818182
+3,Restricted,Arm-level SCNA,WHO grade 2/3,33,73,0.4520547945205479,0.8181818181818182
+3,Restricted,Arm-level SCNA,Integrated grade 2/3,0,62,0.0,0.8181818181818182
+3,Restricted,SCNA + breakpoint panel,WHO grade 2/3,40,73,0.547945205479452,0.8181818181818182
+3,Restricted,SCNA + breakpoint panel,Integrated grade 2/3,9,62,0.14516129032258066,0.8181818181818182
+5,Broad,WHO grade,WHO grade 2/3,0,117,0.0,1.0
+5,Broad,WHO grade,Integrated grade 2/3,0,107,0.0,1.0
+5,Broad,Integrated grade,WHO grade 2/3,0,117,0.0,1.0
+5,Broad,Integrated grade,Integrated grade 2/3,0,107,0.0,1.0
+5,Broad,Breakpoint panel (8 windows),WHO grade 2/3,40,117,0.3418803418803419,0.803030303030303
+5,Broad,Breakpoint panel (8 windows),Integrated grade 2/3,21,107,0.19626168224299065,0.803030303030303
+5,Broad,Arm-level SCNA,WHO grade 2/3,39,117,0.3333333333333333,0.8068181818181818
+5,Broad,Arm-level SCNA,Integrated grade 2/3,5,107,0.04672897196261682,0.8068181818181818
+5,Broad,SCNA + breakpoint panel,WHO grade 2/3,44,117,0.37606837606837606,0.8106060606060606
+5,Broad,SCNA + breakpoint panel,Integrated grade 2/3,11,107,0.102803738317757,0.8106060606060606
+5,Restricted,WHO grade,WHO grade 2/3,0,38,0.0,1.0
+5,Restricted,WHO grade,Integrated grade 2/3,0,34,0.0,1.0
+5,Restricted,Integrated grade,WHO grade 2/3,0,38,0.0,1.0
+5,Restricted,Integrated grade,Integrated grade 2/3,0,34,0.0,1.0
+5,Restricted,Breakpoint panel (8 windows),WHO grade 2/3,17,38,0.4473684210526316,0.8108108108108109
+5,Restricted,Breakpoint panel (8 windows),Integrated grade 2/3,8,34,0.23529411764705882,0.8108108108108109
+5,Restricted,Arm-level SCNA,WHO grade 2/3,14,38,0.3684210526315789,0.8108108108108109
+5,Restricted,Arm-level SCNA,Integrated grade 2/3,0,34,0.0,0.8108108108108109
+5,Restricted,SCNA + breakpoint panel,WHO grade 2/3,21,38,0.5526315789473685,0.8108108108108109
+5,Restricted,SCNA + breakpoint panel,Integrated grade 2/3,5,34,0.14705882352941177,0.8108108108108109
+7,Broad,WHO grade,WHO grade 2/3,0,66,0.0,1.0
+7,Broad,WHO grade,Integrated grade 2/3,0,52,0.0,1.0
+7,Broad,Integrated grade,WHO grade 2/3,0,66,0.0,1.0
+7,Broad,Integrated grade,Integrated grade 2/3,0,52,0.0,1.0
+7,Broad,Breakpoint panel (8 windows),WHO grade 2/3,28,66,0.42424242424242425,0.8006756756756757
+7,Broad,Breakpoint panel (8 windows),Integrated grade 2/3,13,52,0.25,0.8006756756756757
+7,Broad,Arm-level SCNA,WHO grade 2/3,30,66,0.45454545454545453,0.8006756756756757
+7,Broad,Arm-level SCNA,Integrated grade 2/3,5,52,0.09615384615384616,0.8006756756756757
+7,Broad,SCNA + breakpoint panel,WHO grade 2/3,33,66,0.5,0.8006756756756757
+7,Broad,SCNA + breakpoint panel,Integrated grade 2/3,12,52,0.23076923076923078,0.8006756756756757
+7,Restricted,WHO grade,WHO grade 2/3,0,21,0.0,1.0
+7,Restricted,WHO grade,Integrated grade 2/3,0,19,0.0,1.0
+7,Restricted,Integrated grade,WHO grade 2/3,0,21,0.0,1.0
+7,Restricted,Integrated grade,Integrated grade 2/3,0,19,0.0,1.0
+7,Restricted,Breakpoint panel (8 windows),WHO grade 2/3,11,21,0.5238095238095238,0.813953488372093
+7,Restricted,Breakpoint panel (8 windows),Integrated grade 2/3,6,19,0.3157894736842105,0.813953488372093
+7,Restricted,Arm-level SCNA,WHO grade 2/3,10,21,0.47619047619047616,0.813953488372093
+7,Restricted,Arm-level SCNA,Integrated grade 2/3,0,19,0.0,0.813953488372093
+7,Restricted,SCNA + breakpoint panel,WHO grade 2/3,12,21,0.5714285714285714,0.813953488372093
+7,Restricted,SCNA + breakpoint panel,Integrated grade 2/3,3,19,0.15789473684210525,0.813953488372093

@@ -14,3 +14,4 @@ results/tmp_*/
 # never commit patient-level data
 *_segments_PHI*.csv
 /data/institutional/
+results/_verify_external/

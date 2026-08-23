@@ -1,7 +1,0 @@
-profile_id: example_custom_unvalidated
-validation_status: unvalidated
-description: Replace these example thresholds with caller- and assay-validated values.
-loss_threshold: -0.2
-gain_threshold: 0.2
-coordinate_system: one_based_inclusive
-warning: Predictions produced with this profile are not equivalent to the derivation preprocessing.

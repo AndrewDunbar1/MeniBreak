@@ -1,0 +1,14 @@
+# Optional configuration for reproducing the INSTITUTIONAL numbers.
+# The external-cohort entry point (apply/menibreak_panel.py) does NOT need this;
+# it takes --segments and --outcomes directly.
+#
+# The analyses/ scripts read the institutional data root from the environment
+# variable MENIBREAK_DATA_ROOT (IRB-restricted; not shipped):
+#
+#   export MENIBREAK_DATA_ROOT=/path/to/Breakpoint_Architecture_Paper_Analysis_Handoff/
+#
+# Expected layout under that root (see analyses/README.md):
+#   01_RAW_DATA/institutional/meningioma_masterseg_ALL_2026.txt
+#   02_REFERENCE_AND_PROCESSED_DATA/...
+#   03_ANALYSIS_READY_DATA/{ml_breakpoint_model_dataset_2026.csv,outcomes.csv}
+data_root: "/path/to/Breakpoint_Architecture_Paper_Analysis_Handoff/"

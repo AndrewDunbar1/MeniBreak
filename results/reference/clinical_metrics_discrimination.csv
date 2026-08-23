@@ -1,0 +1,31 @@
+horizon,scope,model,n,events,auc
+3,Broad,WHO grade,904,204,0.689702380952381
+3,Broad,Integrated grade,904,204,0.7659383753501401
+3,Broad,Breakpoint panel (8 windows),904,204,0.7022689075630251
+3,Broad,Arm-level SCNA,904,204,0.7774579831932773
+3,Broad,SCNA + breakpoint panel,904,204,0.7799999999999999
+3,Restricted,WHO grade,387,22,0.6863636363636363
+3,Restricted,Integrated grade,387,22,0.8266500622665006
+3,Restricted,Breakpoint panel (8 windows),387,22,0.7146326276463263
+3,Restricted,Arm-level SCNA,387,22,0.7963262764632628
+3,Restricted,SCNA + breakpoint panel,387,22,0.8036114570361146
+5,Broad,WHO grade,674,264,0.6555755728011825
+5,Broad,Integrated grade,674,264,0.7354582409460457
+5,Broad,Breakpoint panel (8 windows),674,264,0.7353104212860311
+5,Broad,Arm-level SCNA,674,264,0.7662278270509978
+5,Broad,SCNA + breakpoint panel,674,264,0.7966971544715449
+5,Restricted,WHO grade,248,37,0.6469834763673625
+5,Restricted,Integrated grade,248,37,0.7823747918534649
+5,Restricted,Breakpoint panel (8 windows),248,37,0.7526578711412835
+5,Restricted,Arm-level SCNA,248,37,0.7663635199180223
+5,Restricted,SCNA + breakpoint panel,248,37,0.8474446009991035
+7,Broad,WHO grade,514,296,0.6345462434911977
+7,Broad,Integrated grade,514,296,0.7332630795933548
+7,Broad,Breakpoint panel (8 windows),514,296,0.7521308579221423
+7,Broad,Arm-level SCNA,514,296,0.7674497892387802
+7,Broad,SCNA + breakpoint panel,514,296,0.7971888172576247
+7,Restricted,WHO grade,155,43,0.6220930232558141
+7,Restricted,Integrated grade,155,43,0.7519725913621262
+7,Restricted,Breakpoint panel (8 windows),155,43,0.7566445182724252
+7,Restricted,Arm-level SCNA,155,43,0.7396179401993355
+7,Restricted,SCNA + breakpoint panel,155,43,0.81187707641196

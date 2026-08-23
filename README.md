@@ -1,119 +1,107 @@
-# MeniBreak
+# MeniBreak — a parsimonious breakpoint panel for meningioma recurrence
 
-MeniBreak is a research toolkit for testing whether the location and geometry
-of copy-number breakpoints improve meningioma recurrence prediction. The repo
-is intentionally ordered like the MeniBreak scientific narrative:
+Eight binary **breakpoint** indicators at fixed genomic coordinates — *where*
+copy-number change points fall, not just *which* arms are gained or lost — that
+carry recurrence-risk information beyond WHO grade, integrated grade, and
+arm-level copy-number alteration (SCNA), and that hold up at the long (5–7 year)
+horizons where the conventional markers fade.
 
-1. reproduce the outcome-linked dynamic top-eight procedure;
-2. test the nine-window stability shortlist as the simplest external analysis;
-3. evaluate the stronger scale-free breakpoint-geometry definition;
-4. reproduce WHO grade and prespecified integrated-grade comparators;
-5. measure what breakpoints add beyond SCNA;
-6. examine grade-discordant reclassification; and
-7. validate the full locked SEG-to-score model.
+This repository contains **the actual code that produced every number in the
+MeniBreak report**, the verified result tables, and a tested entry point so an
+external cohort can **run the same method on its own SEG file**.
 
-**Start at [`START_HERE.md`](START_HERE.md).** It identifies the correct command,
-inputs, output, model status, and interpretation for each stage. Machine readers
-should use [`MODEL_INDEX.yml`](MODEL_INDEX.yml) as the authoritative registry.
+---
 
-The recovered historical six-AUC table is not execution-reproduced and is
-internally inconsistent with its stated candidate count, top-k description,
-and stability table. The provenance audit is in
-[`docs/09_INTERNAL_REPRODUCTION_AUDIT.md`](docs/09_INTERNAL_REPRODUCTION_AUDIT.md).
+## The finding (institutional cohort, patient-grouped out-of-fold AUC)
 
-## Outcome-linked dynamic top-eight workflow
+| Model | Features | Broad 5 yr | Restricted 5 yr |
+|---|---:|---:|---:|
+| WHO grade | 1 | 0.656 | 0.647 |
+| Integrated grade | 1 | 0.735 | 0.782 |
+| Arm-level SCNA | 47 | 0.766 | 0.766 |
+| **8-window panel alone** | **8** | **0.735** | **0.753** |
+| SCNA + panel | 55 | 0.797 | 0.847 |
+| Clinical + SCNA + panel | 60 | 0.843 | 0.843 |
+| Clinical + SCNA + enriched breakpoints | 102 | 0.857 | 0.836 |
 
-```sh
-./mbpr top8-candidates --segments cohort.seg --format auto \
-  --genome-build GRCh37 --output-dir top8_candidates
+The panel **alone** matches integrated grade at 5 years and beats it at 7; it is
+the only marker that *improves* with horizon. The chr1p pericentromeric window
+(chr1:118.75–125.00 Mb) is selected in 88–92% of folds across horizons. See
+[`docs/THE_PANEL.md`](docs/THE_PANEL.md).
 
-python3 workflows/01_dynamic_top8_validation/run_validation.py \
-  --features top8_candidates/breakpoint_candidates.csv \
-  --outcomes outcomes.csv --output-dir top8_validation
+## Three caveats that travel with every number
+
+1. **No external validation.** The panel failed on an external methylation
+   cohort for a *measured* reason: methylation CNA detects ~11 breakpoints/sample
+   vs ~97 on the institutional platform (window occupancy 3.7% vs 27.8%). A
+   same-resolution cohort is required. See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).
+2. **The restricted cohort has 22/37/43 events** at 3/5/7 years — its largest
+   effects are its least precise.
+3. **Research use only.** No claim of clinical utility or prospective validation.
+
+---
+
+## Run it on YOUR data (external cohort / Heidelberg)
+
+You need a segmented copy-number file and recurrence outcomes. Full walk-through:
+[`docs/HEIDELBERG_QUICKSTART.md`](docs/HEIDELBERG_QUICKSTART.md); input format:
+[`docs/INPUT_SPEC.md`](docs/INPUT_SPEC.md).
+
+```bash
+pip install -r requirements.txt
+
+# 1) sanity-check on the bundled synthetic cohort (runs in ~1 min)
+python apply/menibreak_panel.py \
+    --segments data/example/synthetic_segments.csv \
+    --outcomes data/example/synthetic_outcomes.csv \
+    --out results/example
+
+# 2) then point it at your own files (same two-column contract)
+python apply/menibreak_panel.py \
+    --segments YOUR_segments.csv --outcomes YOUR_outcomes.csv \
+    --build GRCh37 --out results/your_cohort
 ```
 
-The top eight are selected anew inside every training fold. This is a faithful
-implementation of the narrative recipe, but it does not reproduce the old Word
-report's complete AUC table and is not a fixed score for outcome-free samples.
+It writes `performance.csv` (the AUC ladder on your cohort), `hotlist_windows.csv`
+(the windows it discovers, in genomic coordinates), and `window_features.csv`
+(per-tumour panel occupancy). Every modelling choice matches the institutional
+analysis in `analyses/03_full_ladder.py`.
 
-## Strongest freshly reproduced breakpoint-only analysis
+## Reproduce the institutional numbers
 
-The scale-free geometry model uses 56 fixed, normalized summaries of breakpoint
-dispersion, concentration, arm-relative position, and loss/gain route shape.
-Under ten repeats of nested patient-grouped validation, broad-cohort AUC was
-0.764, 0.769, and 0.755 at 3, 5, and 7 years. Restricted-transport AUC was
-0.715, 0.747, and 0.722. This is the strongest freshly reproduced
-breakpoint-only internal definition, but remains exploratory rather than a
-locked external predictor. See
-[`docs/10_BREAKPOINT_ONLY_MODEL_COMPARISON.md`](docs/10_BREAKPOINT_ONLY_MODEL_COMPARISON.md).
+The scripts in [`analyses/`](analyses/) regenerate each table of the report on the
+institutional dataset (IRB-restricted, **not** shipped). Point them at the data:
 
-```sh
-./mbpr geometry-extract --segments cohort.seg --format auto \
-  --genome-build GRCh37 --output-dir geometry_features
-
-Rscript workflows/02_scale_free_geometry_validation/run_validation.R \
-  geometry_features/geometry_features.csv outcomes.csv geometry_validation
+```bash
+export MENIBREAK_DATA_ROOT=/path/to/Breakpoint_Architecture_Paper_Analysis_Handoff/
+python analyses/03_full_ladder.py --k 8 --repeats 5
 ```
 
-## Fastest Heidelberg workflow: stability shortlist
+WHO/integrated-grade comparators reproduce exactly; the panel/ladder/windows
+regenerate from the same code that produced the report.
 
-```sh
-./mbpr hotlist-extract --segments cohort.seg --format auto \
-  --genome-build GRCh37 --output-dir hotlist_results
-
-Rscript workflows/01_hotlist_validation/run_validation.R \
-  hotlist_results/hotlist_features.csv outcomes.csv hotlist_validation
-```
-
-This tests the nine regions that were selected most consistently by the dynamic
-procedure. They should initially be reported individually. The dynamic model's
-AUCs must not be assigned to their union.
-
-## Reproduced Word-document comparisons
-
-Recorded WHO grade and the prespecified recorded integrated-grade label were
-reproduced exactly to rounding. The higher-information clinical + SCNA and
-clinical + SCNA + breakpoint-architecture recipes also have retained source and
-fresh execution results. See the complete, status-labeled ladder in
-[`docs/11_EXTERNAL_VALIDATION_LADDER.md`](docs/11_EXTERNAL_VALIDATION_LADDER.md).
-
-## Full locked model
-
-```sh
-./mbpr inspect --segments cohort.seg --format auto --genome-build GRCh37
-./mbpr score --segments cohort.seg --format auto \
-  --genome-build GRCh37 --output-dir locked_scores
-./mbpr validate --predictions locked_scores/predictions.csv \
-  --outcomes outcomes.csv --output-dir locked_validation
-```
-
-The locked model is `mbpr-derivation-v1`: 44 SCNA features plus 18 breakpoint
-architecture features. Five-year recurrence is primary; 3- and 7-year outputs
-are secondary. Its probabilities are internally calibrated and provisional.
+---
 
 ## Repository map
 
-- [`docs/`](docs/): the scientific story and exact analysis contracts, in order.
-- [`workflows/01_hotlist_validation/`](workflows/01_hotlist_validation/): the
-  self-contained first external-validation workflow.
-- [`workflows/02_scale_free_geometry_validation/`](workflows/02_scale_free_geometry_validation/):
-  SEG-to-geometry extraction and outcome-linked validation.
-- [`workflows/03_grade_comparators/`](workflows/03_grade_comparators/): exact
-  recorded WHO and integrated-grade comparison.
-- [`R/`](R/), [`inst/`](inst/), [`mbpr`](mbpr): supported package and CLI.
-- [`archive/method-development/`](archive/method-development/): BISCUT,
-  TRISCUT, geometry, and other method-development analyses. These are retained
-  for auditability but are not part of the shortest collaborator path.
+| Path | What it is |
+|---|---|
+| `apply/menibreak_panel.py` | **Run the panel on your own SEG** (tested entry point) |
+| `src/` | The pipeline package: `harmonization/` (SEG → arms → breakpoints), `features/` (windows, SCNA, enriched), `evaluation/` (patient-grouped folds) |
+| `analyses/` | The six scripts that produced the report tables |
+| `results/reference/` | The verified result CSVs (match the report to the printed digit) |
+| `reference/` | Arm reference (GRCh37/GRCh38) and frozen hotspot windows |
+| `data/example/` | Synthetic cohort + generator, so everything runs offline |
+| `figures/` | Publication figures |
+| `RESULTS_MANIFEST.yaml` / `.json` | **Machine-readable index**: every result → script → output → value → status ([regenerate](build_manifest.py)) |
+| `docs/` | Input spec, quickstart, the panel, methods, provenance, limitations |
 
-No institutional raw data, sample-level outcomes, linkage keys, or PHI are
-included. The software is research-use-only and is not for diagnosis, grading,
-treatment selection, or patient management.
+## Provenance
 
-Before publishing changes, run:
+The report numbers originate in the local repository
+`BreakpointsFoundationModel`, packaged to a drive export and reassembled here —
+**not** a ChatGPT thread (a prior claim that the code lived only in an online
+workspace was checked against every file's metadata and rejected). Full audit:
+[`docs/PROVENANCE.md`](docs/PROVENANCE.md).
 
-```sh
-R_PROFILE_USER=/dev/null Rscript tests/smoke.R
-./tools/audit_no_phi.sh
-```
-
-Code is released under Apache-2.0. See [`CITATION.cff`](CITATION.cff).
+Research use only. See [`LICENSE.md`](LICENSE.md) and [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).

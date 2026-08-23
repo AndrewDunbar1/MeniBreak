@@ -1,8 +1,0 @@
-.git
-.Rproj.user
-analysis
-tests/output
-*.Rcheck
-*.tar.gz
-renv/library
-renv/staging

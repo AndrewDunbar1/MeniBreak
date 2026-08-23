@@ -1,0 +1,6 @@
+# MeniBreak breakpoint-panel pipeline. Tested with the versions noted.
+pandas>=1.5
+numpy>=1.23
+scipy>=1.9
+scikit-learn>=1.2,<1.10   # elastic-net LogisticRegression(penalty="elasticnet") API
+pyyaml>=6.0

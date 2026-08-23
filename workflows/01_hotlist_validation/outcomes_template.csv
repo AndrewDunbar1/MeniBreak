@@ -1,3 +1,0 @@
-sample_id,patient_id,recurrence_time,recurrence_event,who_grade,integrated_grade,age,mitoses,gtr,prior_rt,adj_rt
-SAMPLE_001,PATIENT_001,6.2,0,1,1,55,1,1,0,0
-SAMPLE_002,PATIENT_002,2.1,1,2,2,68,5,0,0,1

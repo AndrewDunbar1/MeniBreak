@@ -1,7 +1,0 @@
-bibentry(
-  bibtype = "Manual",
-  title = "mbpr: deterministic SEG-to-recurrence research software",
-  author = person("Andrew R.", "Dunbar"),
-  year = "2026",
-  note = "R package version 0.1.1"
-)

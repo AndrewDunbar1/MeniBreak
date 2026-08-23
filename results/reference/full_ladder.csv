@@ -1,0 +1,55 @@
+horizon,scope,model,n,events,auc
+3,Broad,WHO grade,904,204,0.689702380952381
+3,Broad,Integrated grade,904,204,0.7659383753501401
+3,Broad,Arm-level SCNA,904,204,0.7774509803921569
+3,Broad,8-window panel alone,904,204,0.7022689075630252
+3,Broad,SCNA + 8-window panel,904,204,0.7799929971988796
+3,Broad,SCNA + enriched breakpoints,904,204,0.777703081232493
+3,Broad,Clinical + 8-window panel,904,204,0.8362885154061626
+3,Broad,Clinical + SCNA + 8-window panel,904,204,0.8501470588235295
+3,Broad,Clinical + SCNA + enriched breakpoints,904,204,0.8441666666666666
+3,Restricted,WHO grade,387,22,0.6863636363636363
+3,Restricted,Integrated grade,387,22,0.8266500622665006
+3,Restricted,Arm-level SCNA,387,22,0.7963262764632628
+3,Restricted,8-window panel alone,387,22,0.7146326276463263
+3,Restricted,SCNA + 8-window panel,387,22,0.8036114570361146
+3,Restricted,SCNA + enriched breakpoints,387,22,0.7896637608966376
+3,Restricted,Clinical + 8-window panel,387,22,0.7368617683686176
+3,Restricted,Clinical + SCNA + 8-window panel,387,22,0.7930261519302615
+3,Restricted,Clinical + SCNA + enriched breakpoints,387,22,0.7982565379825654
+5,Broad,WHO grade,674,264,0.6555755728011825
+5,Broad,Integrated grade,674,264,0.7354582409460457
+5,Broad,Arm-level SCNA,674,264,0.7662370657797487
+5,Broad,8-window panel alone,674,264,0.7353288987435329
+5,Broad,SCNA + 8-window panel,674,264,0.7966971544715448
+5,Broad,SCNA + enriched breakpoints,674,264,0.8190779748706576
+5,Broad,Clinical + 8-window panel,674,264,0.8301921655580192
+5,Broad,Clinical + SCNA + 8-window panel,674,264,0.8434866962305988
+5,Broad,Clinical + SCNA + enriched breakpoints,674,264,0.8572246858832224
+5,Restricted,WHO grade,248,37,0.6469834763673625
+5,Restricted,Integrated grade,248,37,0.7823747918534649
+5,Restricted,Arm-level SCNA,248,37,0.7663635199180223
+5,Restricted,8-window panel alone,248,37,0.7526578711412835
+5,Restricted,SCNA + 8-window panel,248,37,0.8474446009991035
+5,Restricted,SCNA + enriched breakpoints,248,37,0.8425771743307288
+5,Restricted,Clinical + 8-window panel,248,37,0.8108108108108109
+5,Restricted,Clinical + SCNA + 8-window panel,248,37,0.8427052645062124
+5,Restricted,Clinical + SCNA + enriched breakpoints,248,37,0.8361726655565518
+7,Broad,WHO grade,514,296,0.6345462434911977
+7,Broad,Integrated grade,514,296,0.7332630795933548
+7,Broad,Arm-level SCNA,514,296,0.7674497892387802
+7,Broad,8-window panel alone,514,296,0.7521618522191917
+7,Broad,SCNA + 8-window panel,514,296,0.7971888172576247
+7,Broad,SCNA + enriched breakpoints,514,296,0.8140342177039425
+7,Broad,Clinical + 8-window panel,514,296,0.8190552938259361
+7,Broad,Clinical + SCNA + 8-window panel,514,296,0.830802132407637
+7,Broad,Clinical + SCNA + enriched breakpoints,514,296,0.8489957847756012
+7,Restricted,WHO grade,155,43,0.6220930232558141
+7,Restricted,Integrated grade,155,43,0.7519725913621262
+7,Restricted,Arm-level SCNA,155,43,0.7396179401993355
+7,Restricted,8-window panel alone,155,43,0.7566445182724252
+7,Restricted,SCNA + 8-window panel,155,43,0.81187707641196
+7,Restricted,SCNA + enriched breakpoints,155,43,0.829734219269103
+7,Restricted,Clinical + 8-window panel,155,43,0.7713870431893687
+7,Restricted,Clinical + SCNA + 8-window panel,155,43,0.8021179401993355
+7,Restricted,Clinical + SCNA + enriched breakpoints,155,43,0.8222591362126245

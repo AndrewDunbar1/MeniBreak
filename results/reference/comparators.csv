@@ -1,0 +1,13 @@
+horizon,scope,marker,n,events,auc,locked_published
+3,broad,who_grade,904,204,0.689702380952381,0.69
+3,broad,integrated_grade,904,204,0.7659383753501401,0.766
+3,restricted,who_grade,387,22,0.6863636363636363,
+3,restricted,integrated_grade,387,22,0.8266500622665006,
+5,broad,who_grade,674,264,0.6555755728011825,0.656
+5,broad,integrated_grade,674,264,0.7354582409460457,0.735
+5,restricted,who_grade,248,37,0.6469834763673625,
+5,restricted,integrated_grade,248,37,0.7823747918534649,
+7,broad,who_grade,514,296,0.6345462434911977,0.635
+7,broad,integrated_grade,514,296,0.7332630795933548,0.733
+7,restricted,who_grade,155,43,0.6220930232558141,
+7,restricted,integrated_grade,155,43,0.7519725913621262,

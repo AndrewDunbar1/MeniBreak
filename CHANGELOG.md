@@ -1,37 +1,37 @@
 # Changelog
 
-## 0.1.2
+## clean-python-release (2026-08-19)
 
-- Added direct SEG extraction of the exact 56-feature scale-free geometry set.
-- Added a self-contained outcome-linked geometry validation workflow.
-- Added a recorded WHO and prespecified integrated-grade comparator workflow.
-- Added a machine-readable benchmark separating exact Word-table reproduction
-  from fresh replacement estimates for clinical genomic models.
-- Added an explicit external-validation ladder retaining both the simple
-  shortlist and the stronger geometry recipe.
+Complete rebuild of the repository around the **actual recovered code** that
+produced the MeniBreak report, so every reported number is backed by a runnable
+script and an external cohort can apply the panel to its own SEG data.
 
-## 0.1.1
+### Added
+- `src/` — the pipeline package recovered from `BreakpointsFoundationModel`
+  (SEG harmonization → arm tiling → breakpoints → windows/SCNA/enriched features →
+  patient-grouped evaluation), reassembled at its original import paths and
+  verified to import and run.
+- `apply/menibreak_panel.py` — tested entry point to run the panel on an
+  external cohort's SEG + outcomes; recovers a planted chr1p window on the
+  bundled synthetic data and prints a resolution-comparability QC line.
+- `analyses/01–06` — the six original scripts that generated the report tables,
+  with the institutional data root made configurable via `MENIBREAK_DATA_ROOT`.
+- `results/reference/` — the verified result CSVs (match the report to the
+  printed digit).
+- `RESULTS_MANIFEST.yaml` / `.json` — machine-readable index (437 result records)
+  generated from the CSVs by `build_manifest.py`.
+- `docs/` — INPUT_SPEC, HEIDELBERG_QUICKSTART, THE_PANEL, PROVENANCE, LIMITATIONS.
+- `data/example/` — synthetic cohort + generator; `reference/` arm and hotspot
+  references; `figures/` publication figures; a CI smoke test that runs the
+  panel on synthetic data.
 
-- Reordered the repository around the MeniBreak scientific workflow.
-- Added an authoritative machine-readable model registry.
-- Added deterministic candidate extraction and a fold-local dynamic top-eight
-  validation workflow matching the recovered source specification.
-- Reclassified the nine displayed windows as a stability shortlist rather than
-  a fixed model to which historical AUCs could be assigned.
-- Completed a forensic reconstruction showing that the historical six-AUC
-  table is internally inconsistent with its stated methods and stability table.
-- Added the freshly reproduced scale-free geometry benchmark as the strongest
-  breakpoint-only internal definition, with broad AUC 0.764/0.769/0.755.
-- Separated outcome-linked selection analyses from the locked 62-feature predictor.
-- Moved exploratory method development into an explicit archive.
+### Changed
+- Provenance corrected: the report code originates in the local
+  `BreakpointsFoundationModel` repository (drive export `T1:/deliverables`), not a
+  ChatGPT thread. The prior "online workspace / never downloaded" claim was
+  checked against every source file's metadata and rejected (see `docs/PROVENANCE.md`).
 
-## 0.1.0 — research validation release
-
-- Added deterministic event-called SEG normalization and adapter registry.
-- Added GRCh37 and GRCh38 chromosome-arm references.
-- Added frozen SCNA-plus-breakpoint models for 3-, 5-, and 7-year recurrence.
-- Added QC, run manifests, external outcome validation, and synthetic fixtures.
-- Added Docker packaging, pinned R dependencies, CI, model card, and citation metadata.
-- Added deidentified research scripts and aggregate results for hotspot,
-  geometry, BISCUT-inspired, TRISCUT-inspired, comparator, and
-  clinical-integrated analyses.
+### Removed
+- The previous R-package layout (`mbpr`, `renv`, R workflows, prior audits). It
+  remains available in git history. This release is single-language (Python) for
+  clarity.

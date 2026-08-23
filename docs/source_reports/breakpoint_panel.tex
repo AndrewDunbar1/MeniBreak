@@ -1,0 +1,604 @@
+% =====================================================================
+%  A parsimonious breakpoint panel for meningioma recurrence
+%
+%  Compile:  pdflatex breakpoint_panel.tex   (twice, for references)
+%  Figures are expected in ../figures_nejm/ relative to this file.
+%
+%  Every numeric value below was read from the generated CSVs in
+%  ../ ; see \S\ref{sec:repro} for the exact provenance of each table.
+% =====================================================================
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue]{hyperref}
+\usepackage{float}
+
+\graphicspath{{../figures_nejm/}{./figures_nejm/}{./}}
+
+% Let \bfseries take effect inside siunitx S columns, and keep the parser from
+% choking on the bracketed difference values in Table 3.
+\sisetup{detect-weight=true, detect-family=true, table-align-text-before=false}
+
+\captionsetup{font=small,labelfont=bf,justification=justified,singlelinecheck=false}
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0pt}
+
+\definecolor{nejmred}{HTML}{BC3C29}
+\newcommand{\note}[1]{\textcolor{gray}{\small #1}}
+
+\title{\vspace{-2em}A parsimonious breakpoint panel for meningioma recurrence:\\
+\large eight genomic windows compared with WHO and integrated grade}
+\author{Breakpoint Architecture Analysis}
+\date{4 August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Eight binary breakpoint indicators, each defined by a fixed genomic interval and
+discovered entirely within training folds, were compared with WHO grade,
+integrated grade and arm-level copy-number alteration (SCNA) for prediction of
+meningioma recurrence at 3, 5 and 7 years. The panel alone matched integrated
+grade at 5 years (AUC 0.735 vs 0.735) and exceeded it at 7 years
+(0.752 vs 0.733), while every conventional marker declined across the same
+interval. Added to arm-level SCNA the panel improved discrimination by
++0.020 to +0.030 AUC in the broad cohort and by +0.041 to +0.081 in a restricted
+surgical cohort. Combined with five routine clinical covariates it reached
+AUC 0.850 at 3 years using 60 features, and 0.836 using 13. The panel
+independently recovered the known chromosome 1p 112--125\,Mb hotspot in
+88--100\% of training folds. It did \emph{not} replicate on an external
+methylation-derived cohort, for a measured and specific reason: assay
+resolution.
+\end{abstract}
+
+% =====================================================================
+\section{Cohort and methods}
+% =====================================================================
+
+Institutional meningioma cohort, GRCh37, event-called segmental copy number.
+Recurrence was evaluated at fixed horizons under a strict endpoint: recurrence
+on or before the horizon counted as an event, event-free follow-up through the
+horizon as a non-event, and censoring before the horizon without recurrence led
+to exclusion. Cohort sizes are given in Table~\ref{tab:cohort}.
+
+\begin{table}[H]
+\centering
+\caption{Analytic cohorts. The restricted subset requires primary presentation,
+gross-total resection, no prior radiotherapy, no adjuvant radiotherapy, not
+radiation-induced, and non-angiomatous histology --- all six conditions.}
+\label{tab:cohort}
+\begin{tabular}{lrrrr}
+\toprule
+& \multicolumn{2}{c}{Broad cohort} & \multicolumn{2}{c}{Restricted cohort} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Horizon & Tumours & Recurrences & Tumours & Recurrences \\
+\midrule
+3 years & 904 & 204 & 387 & 22 \\
+5 years & 674 & 264 & 248 & 37 \\
+7 years & 514 & 296 & 155 & 43 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Breakpoint windows.}
+Each chromosome arm was divided into 20 bins of equal arm-relative width
+(0 at the telomere, 1 at the centromere). A window is scored 1 for a tumour if
+any breakpoint falls inside it. Windows present in fewer than 20 tumours were
+discarded, leaving 745 candidates.
+
+\paragraph{Window selection is internal to training folds.}
+Within every training fold, candidate windows were ranked by a
+$\chi^2$ test of association with the outcome and the top $k=8$ retained. The
+model was then fitted on those folds only and scored on held-out patients.
+Reported AUCs therefore include the cost of discovery. No frozen or previously
+published window list was used as an input.
+
+\paragraph{Validation.}
+Five repeats of patient-grouped 5-fold cross-validation. All tumours from one
+patient are assigned to the same fold, which matters because 75 patients
+contribute more than one resection. Models are binomial elastic net
+($\alpha=0.25$), predictors standardised and missing clinical values imputed
+using training-fold statistics only.
+
+\paragraph{Restricted-cohort estimates use transport, not refitting.}
+Following the locked project's design, the model is fitted on the broad cohort
+with patient-grouped out-of-fold prediction and those honest scores are then
+subset to restricted tumours. Refitting inside the restricted subset was
+attempted and abandoned: with 22 events at 3 years it produced an arm-level SCNA
+AUC of 0.500, which is a statement about sample size rather than about biology.
+
+% =====================================================================
+\section{Discrimination}
+% =====================================================================
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figure1_discrimination.png}
+\caption{Discrimination of the eight-window panel against WHO grade and
+integrated grade. Comparator AUCs are computed \emph{separately in each cohort};
+published values are broad-cohort figures and differ materially in the
+restricted subset. Panel labels give tumours / recurrences.}
+\label{fig:disc}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Area under the ROC curve. The panel alone uses eight binary indicators
+and no other information.}
+\label{tab:disc}
+\sisetup{table-format=1.3}
+\begin{tabular}{llSSSS}
+\toprule
+Cohort & Horizon & {WHO grade} & {Integrated grade} & {Arm-level SCNA} & {Panel alone} \\
+\midrule
+Broad      & 3 years & 0.690 & 0.766 & 0.777 & 0.702 \\
+           & 5 years & 0.656 & 0.735 & 0.766 & 0.735 \\
+           & 7 years & 0.635 & 0.733 & 0.767 & 0.752 \\
+\addlinespace
+Restricted & 3 years & 0.686 & 0.827 & 0.796 & 0.715 \\
+           & 5 years & 0.647 & 0.782 & 0.766 & 0.753 \\
+           & 7 years & 0.622 & 0.752 & 0.740 & 0.757 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two features of Table~\ref{tab:disc} are worth separating.
+
+First, \textbf{the panel alone is comparable to integrated grade, not superior
+to arm-level SCNA}. At 5 years the two are identical (0.735 vs 0.735); at
+7 years the panel is ahead in both cohorts (0.752 vs 0.733 broad; 0.757 vs 0.752
+restricted). It does not beat arm-level SCNA at 3 or 5 years.
+
+Second, \textbf{the markers move in opposite directions with horizon}
+(Table~\ref{tab:trend}). Every conventional marker loses discrimination as the
+horizon lengthens; the breakpoint panel gains it. This is the clearest evidence
+in the analysis that breakpoint architecture indexes a different prognostic axis
+from grade.
+
+\begin{table}[H]
+\centering
+\caption{Change in AUC from 3 to 7 years, both cohorts. Every conventional
+marker declines; the breakpoint panel is the only one that improves.}
+\label{tab:trend}
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{3}{c}{Broad cohort} & \multicolumn{3}{c}{Restricted cohort} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Marker & 3 yr & 7 yr & Change & 3 yr & 7 yr & Change \\
+\midrule
+WHO grade                 & 0.690 & 0.635 & $-0.055$ & 0.686 & 0.622 & $-0.064$ \\
+Integrated grade          & 0.766 & 0.733 & $-0.033$ & 0.827 & 0.752 & $-0.075$ \\
+Arm-level SCNA            & 0.777 & 0.767 & $-0.010$ & 0.796 & 0.740 & $-0.056$ \\
+\textbf{Breakpoint panel} & 0.702 & 0.752 & $\mathbf{+0.050}$ & 0.715 & 0.757 & $\mathbf{+0.042}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The divergence is present in both cohorts and is if anything larger in the
+restricted one, where integrated grade loses 0.075 across the interval while the
+panel gains 0.042.
+
+% =====================================================================
+\section{Incremental value over arm-level SCNA}
+% =====================================================================
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figure1b_discrimination_with_combined.png}
+\caption{As Figure~\ref{fig:disc}, with the combined SCNA + panel model added as
+a fourth bar, so the panel can be read both on its own and as part of a full
+genomic model.}
+\label{fig:disc1b}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figure3_scna_plus_breakpoints.png}
+\caption{Arm-level SCNA with and without the eight-window panel. Top row:
+discrimination. Bottom row: specificity at a matched sensitivity of
+approximately 80\%. Left, broad cohort; right, restricted cohort.}
+\label{fig:incr}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Incremental discrimination from adding eight windows to arm-level SCNA.}
+\label{tab:incr}
+\sisetup{table-format=1.3}
+\begin{tabular}{llSSS}
+\toprule
+Cohort & Horizon & {SCNA} & {SCNA + panel} & {Difference} \\
+\midrule
+Broad      & 3 years & 0.777 & 0.780 & {+0.003} \\
+           & 5 years & 0.766 & 0.797 & {+0.030} \\
+           & 7 years & 0.767 & 0.797 & {+0.030} \\
+\addlinespace
+Restricted & 3 years & 0.796 & 0.804 & {+0.007} \\
+           & 5 years & 0.766 & 0.847 & {+0.081} \\
+           & 7 years & 0.740 & 0.812 & {+0.072} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The increment is roughly \textbf{2.5 times larger in the restricted cohort} at
+5 and 7 years. A plausible reading is that recurrence in the broad cohort is
+driven substantially by treatment and presentation --- subtotal resection, prior
+radiotherapy, radiation-induced tumours --- and that removing those leaves
+variation closer to intrinsic tumour biology. The 3-year increment is negligible
+in both cohorts.
+
+% =====================================================================
+\section{Operating characteristics}
+% =====================================================================
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figure2_specificity.png}
+\caption{Specificity at a matched sensitivity of approximately 80\%. WHO grade
+and integrated grade are three-level ordinals: the lowest threshold that reaches
+80\% sensitivity classifies essentially every tumour as high risk, leaving no
+specificity. Achieved sensitivity for both grades is 1.00.}
+\label{fig:spec}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Specificity at matched sensitivity ($\approx$80\%). Grade values are
+exactly zero because 80\% sensitivity is unreachable without flagging the whole
+cohort.}
+\label{tab:spec}
+\sisetup{table-format=1.3}
+\begin{tabular}{llSSSS}
+\toprule
+Cohort & Horizon & {WHO} & {Integrated grade} & {SCNA} & {SCNA + panel} \\
+\midrule
+Broad      & 3 years & 0.000 & 0.000 & 0.636 & 0.660 \\
+           & 5 years & 0.000 & 0.000 & 0.473 & 0.610 \\
+           & 7 years & 0.000 & 0.000 & 0.505 & 0.642 \\
+\addlinespace
+Restricted & 3 years & 0.000 & 0.000 & 0.567 & 0.778 \\
+           & 5 years & 0.000 & 0.000 & 0.450 & 0.787 \\
+           & 7 years & 0.000 & 0.000 & 0.429 & 0.679 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This is a granularity limitation of grading rather than an artefact of the
+analysis, and it has a direct clinical reading: a three-level ordinal cannot be
+operated at a chosen sensitivity, whereas a continuous score can be thresholded
+anywhere. In the restricted cohort the combined model raises specificity from
+0.450 to 0.787 at 5 years at the same sensitivity.
+
+% =====================================================================
+\section{Reclassification of grade-discordant tumours}
+% =====================================================================
+
+The clinically pointed question is not overall accuracy but what happens to the
+tumours grading gets wrong. Two discordant groups were defined at each horizon:
+tumours \emph{over-called} by grade (grade 2/3, never recurred), which a useful
+model should place below its high-risk threshold; and tumours
+\emph{under-called} by grade (grade 1, recurred), which it should place above.
+All models were thresholded at approximately 80\% sensitivity.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figure5_discordance_broad.png}
+\caption{Reclassification of grade-discordant tumours, broad cohort.
+Panels A--B, versus WHO grade; C--D, versus integrated grade. Left column,
+over-called by grade; right column, under-called. $n$ is the number of
+discordant tumours in each cell.}
+\label{fig:disc2}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figure5_discordance_restricted.png}
+\caption{Reclassification of grade-discordant tumours, restricted cohort.
+Layout as Figure~\ref{fig:disc2}. Cell sizes are small (5--73 tumours) and the
+bars should be read accordingly.}
+\label{fig:disc2r}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Fraction of grade-discordant tumours correctly reclassified, versus
+\textbf{integrated grade}, both cohorts.}
+\label{tab:discord}
+\sisetup{table-format=1.3}
+\begin{tabular}{llrSSrSS}
+\toprule
+& & \multicolumn{3}{c}{Broad cohort} & \multicolumn{3}{c}{Restricted cohort} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+Direction & Horizon & {$n$} & {SCNA} & {Panel} & {$n$} & {SCNA} & {Panel} \\
+\midrule
+Over-called    & 3 years & 180 & 0.044 & \bfseries 0.156 & 62 & 0.000 & \bfseries 0.161 \\
+(grade 2/3,    & 5 years & 107 & 0.047 & \bfseries 0.196 & 34 & 0.000 & \bfseries 0.235 \\
+never recurred)& 7 years & 52  & 0.096 & \bfseries 0.250 & 19 & 0.000 & \bfseries 0.316 \\
+\addlinespace
+Under-called   & 3 years & 55  & 0.309 & \bfseries 0.473 & 5  & 0.200 & \bfseries 0.400 \\
+(grade 1,      & 5 years & 87  & 0.448 & \bfseries 0.563 & 12 & 0.500 & \bfseries 0.667 \\
+recurred)      & 7 years & 102 & 0.471 & \bfseries 0.539 & 16 & 0.562 & \bfseries 0.688 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{The same comparison versus \textbf{WHO grade}. The three models are
+close to indistinguishable, in contrast to Table~\ref{tab:discord}.}
+\label{tab:discord_who}
+\sisetup{table-format=1.3}
+\begin{tabular}{llrSSrSS}
+\toprule
+& & \multicolumn{3}{c}{Broad cohort} & \multicolumn{3}{c}{Restricted cohort} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+Direction & Horizon & {$n$} & {SCNA} & {Panel} & {$n$} & {SCNA} & {Panel} \\
+\midrule
+Over-called    & 3 years & 196 & 0.347 & 0.362 & 73 & 0.452 & 0.452 \\
+(grade 2/3,    & 5 years & 117 & 0.333 & 0.342 & 38 & 0.368 & 0.447 \\
+never recurred)& 7 years & 66  & 0.455 & 0.424 & 21 & 0.476 & 0.524 \\
+\addlinespace
+Under-called   & 3 years & 75  & 0.573 & 0.640 & 10 & 0.700 & 0.800 \\
+(grade 1,      & 5 years & 113 & 0.646 & 0.673 & 20 & 0.750 & 0.750 \\
+recurred)      & 7 years & 134 & 0.634 & 0.679 & 25 & 0.720 & 0.760 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Against integrated grade the panel outperforms arm-level SCNA in
+\textbf{all twelve cells across both cohorts}, in both directions, roughly
+tripling the rescue rate for over-called tumours.
+
+\paragraph{The restricted cohort sharpens this to an absolute statement.}
+Arm-level SCNA correctly reclassifies \textbf{none} of the integrated-grade
+over-called tumours at any horizon (0/62, 0/34, 0/19), whereas the breakpoint
+panel reclassifies 16\%, 24\% and 32\%. In a clean surgical population, arm-level
+copy number carries no information at all about which elevated-integrated-grade
+tumours will remain recurrence-free; positional breakpoint information carries
+some. This is the single clearest demonstration in the analysis that the two
+feature types are not measuring the same thing.
+
+\paragraph{Against WHO grade the panel adds nothing} (Table~\ref{tab:discord_who}).
+All three models sit at 0.33--0.55 over-called and 0.57--0.80 under-called, with
+no consistent ordering. WHO grade's errors are already captured by arm-level copy
+number; integrated grade's residual errors are not. Since integrated grade
+already absorbs the arm-level signal (1p/22q loss, CDKN2A), what remains is
+precisely the positional information the windows encode.
+
+\note{Caution: restricted cells contain 5--73 tumours. The 3-year under-called
+cell has $n=5$ and should not be interpreted.}
+
+% =====================================================================
+\section{The window list}
+% =====================================================================
+
+Selection frequency is the fraction of training folds that independently chose a
+window; it separates a finding from a coincidence.
+
+\begin{table}[H]
+\centering
+\caption{Windows selected in at least 40\% of training folds ($k=5$). Position
+is arm-relative (0 = telomere, 1 = centromere).}
+\label{tab:windows}
+\begin{tabular}{llcccc}
+\toprule
+& & \multicolumn{3}{c}{Selection frequency} & \\
+\cmidrule(lr){3-5}
+Arm & Arm-relative & 3 yr & 5 yr & 7 yr & GRCh37 coordinates \\
+\midrule
+1p  & 0.90--0.95 & \textbf{1.00} & --- & 0.44 & chr1:112.50--118.75\,Mb \\
+1p  & 0.95--1.00 & \textbf{0.96} & \textbf{0.88} & \textbf{0.92} & chr1:118.75--125.00\,Mb \\
+6q  & 0.90--0.95 & \textbf{1.00} & \textbf{0.64} & --- & chr6:66.51--72.01\,Mb \\
+6q  & 0.95--1.00 & 0.40 & --- & \textbf{0.68} & chr6:61.00--66.51\,Mb \\
+19q & 0.50--0.55 & --- & \textbf{0.80} & \textbf{0.68} & chr19:41.18--42.81\,Mb \\
+19q & 0.45--0.50 & --- & \textbf{0.72} & --- & chr19:42.81--44.45\,Mb \\
+2p  & 0.75--0.80 & --- & \textbf{0.76} & --- & chr2:69.97--74.64\,Mb \\
+4p  & 0.95--1.00 & 0.44 & --- & --- & chr4:47.88--50.40\,Mb \\
+3p  & 0.50--0.55 & --- & --- & 0.40 & chr3:45.50--50.05\,Mb \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Positive control.}
+The chromosome 1p 112--125\,Mb region is selected in 88--100\% of folds at every
+horizon. This is the previously reported chr1p hotspot for this disease,
+recovered here \emph{without} the frozen window list being available to the
+selection procedure, and constitutes the strongest internal validation of the
+pipeline.
+
+\paragraph{Novel candidates.}
+The chr19q 41--44.5\,Mb region (19q13) is selected in 68--80\% of folds at the
+longer horizons and is the most interesting signal outside 1p. Chromosome 6q
+loss is established meningioma biology. Windows below approximately 40\%
+selection frequency should be treated as fold-specific noise.
+
+% =====================================================================
+\section{Model ladder and parsimony}
+% =====================================================================
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figure6_full_ladder.png}
+\caption{Full model ladder. Top row, genomic-only models; bottom row,
+clinical-integrated models. Left, broad cohort; right, restricted. Clinical
+covariates are age, $\log(1+\text{mitoses})$, gross-total resection, prior
+radiotherapy and adjuvant radiotherapy.}
+\label{fig:ladder}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figure7_parsimony.png}
+\caption{Discrimination against model size. The steep segment lies between 8 and
+13 features; beyond 13 the curve is close to flat.}
+\label{fig:parsimony}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Model ladder by feature count, \textbf{broad cohort}. Bold marks the
+best model at each horizon. Feature counts: integrated grade is a single
+ordinal label; the panel is 8 binary window indicators; clinical adds 5
+covariates; SCNA adds 47 arm-level calls; enriched adds 42 further breakpoint
+features (amplitude, allelic, density).}
+\label{tab:ladder}
+\sisetup{table-format=1.3}
+\begin{tabular}{lrSSS}
+\toprule
+Model & {Features} & {3 years} & {5 years} & {7 years} \\
+\midrule
+Integrated grade                       & 1   & 0.766 & 0.735 & 0.733 \\
+Breakpoint panel alone                 & 8   & 0.702 & 0.735 & 0.752 \\
+Clinical + panel                       & 13  & 0.836 & 0.830 & 0.819 \\
+Clinical + SCNA + panel                & 60  & \bfseries 0.850 & 0.843 & 0.831 \\
+Clinical + SCNA + enriched breakpoints & 102 & 0.844 & \bfseries 0.857 & \bfseries 0.849 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Model ladder by feature count, \textbf{restricted cohort}
+(primary, gross-total resection, no prior or adjuvant radiotherapy, not
+radiation-induced, non-angiomatous). Estimates are transported from the broad
+cohort without refitting; $n=387/248/155$ with $22/37/43$ recurrences.}
+\label{tab:ladder_restricted}
+\sisetup{table-format=1.3}
+\begin{tabular}{lrSSS}
+\toprule
+Model & {Features} & {3 years} & {5 years} & {7 years} \\
+\midrule
+Integrated grade                       & 1   & \bfseries 0.827 & 0.782 & 0.752 \\
+Breakpoint panel alone                 & 8   & 0.715 & 0.753 & 0.757 \\
+Clinical + panel                       & 13  & 0.737 & 0.811 & 0.771 \\
+Clinical + SCNA + panel                & 60  & 0.793 & \bfseries 0.843 & 0.802 \\
+Clinical + SCNA + enriched breakpoints & 102 & 0.798 & 0.836 & \bfseries 0.822 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two observations follow in the broad cohort. \textbf{The largest single gain is
+from 8 to 13 features} --- adding five routine clinical variables to the panel
+is worth +0.09 to +0.13 AUC, far more than the 47 arm-level calls
+(+0.012 to +0.014) or the 42 additional enriched breakpoint features
+($-0.006$ to $+0.018$). \textbf{Thirteen features recover most of the achievable
+performance}: 0.836 at 3 years against 0.844 for the 102-feature model.
+
+\paragraph{The restricted cohort inverts this.}
+Three differences are worth stating plainly
+(Table~\ref{tab:ladder_restricted}). First, \textbf{integrated grade is the best
+model at 3 years} (0.827), ahead of every genomic combination including the
+102-feature model (0.798). Second, \textbf{arm-level SCNA is no longer
+optional}: without it the 13-feature model reaches only 0.737 at 3 years,
+well below integrated grade, and adding SCNA recovers +0.03 to +0.06 at every
+horizon. Third, \textbf{the parsimonious panel matches or beats the enriched set
+once SCNA is present} --- 0.843 versus 0.836 at 5 years --- which is what one
+would expect when 102 features must be fitted against 37 events.
+
+A likely explanation for the reversal is that both the windows and the clinical
+covariates were selected in the broad cohort, where treatment and presentation
+dominate recurrence; neither is tuned to a clean surgical setting. The 22 events
+at 3 years also make that column the least precisely estimated in the report.
+
+% =====================================================================
+\section{External validation: a resolution failure}
+% =====================================================================
+
+The panel was applied to GSE189521 (110 tumours, EPIC methylation-derived copy
+number), quarantined throughout and never used for discovery, thresholding or
+model selection. Windows and coefficients were fixed from institutional data;
+nothing was refitted.
+
+\begin{table}[H]
+\centering
+\caption{External validation, GSE189521. Frozen transfer.}
+\label{tab:external}
+\sisetup{table-format=1.3}
+\begin{tabular}{lrrSSS}
+\toprule
+Horizon & {$n$} & {Events} & {SCNA} & {SCNA + panel} & {Panel alone} \\
+\midrule
+3 years & 50 & 13 & 0.755 & 0.705 & 0.600 \\
+5 years & 30 & 17 & 0.643 & 0.620 & 0.543 \\
+7 years & 22 & 18 & 0.681 & 0.653 & 0.604 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{The panel does not transfer; it degrades performance at every horizon.}
+The mechanism was measured rather than inferred. Median breakpoints detected per
+sample were 97 in the institutional cohort and 11 in the external cohort, and
+mean occupancy of the eight panel windows fell from 27.8\% to 3.7\%, with two
+windows firing in no external tumour at all. A marker defined at approximately
+5\,Mb resolution cannot be evaluated on a platform detecting one-ninth as many
+change points.
+
+Notably, arm-level SCNA \emph{does} transfer (0.755 externally at 3 years,
+against 0.763 for the previously published locked model). Coarse arm-level calls
+are resolution-robust; fine positional windows are not. A fair external test
+requires a same-resolution cohort.
+
+% =====================================================================
+\section{Limitations}
+% =====================================================================
+
+\begin{itemize}\itemsep2pt
+\item Single institution, single platform, retrospective ascertainment of
+      recurrence; surveillance intensity is not uniform.
+\item Restricted-cohort estimates rest on 22, 37 and 43 events. The
+      $+0.081$ increment at 5 years is the largest effect reported here and the
+      least precisely estimated.
+\item Windows are approximately 5--6\,Mb arm-relative deciles. They are regions
+      of interest, not mapped rearrangement junctions.
+\item Selection frequency measures stability across folds of a single cohort and
+      is not external reproducibility.
+\item The panel failed external validation on methylation-derived copy number
+      and no cross-platform claim is made.
+\item No multiplicity correction is applied to individual windows; they are
+      reported by stability rather than by significance.
+\item Research use only. No claim of clinical utility, treatment guidance or
+      prospective validation is made.
+\end{itemize}
+
+% =====================================================================
+\section{Reproducibility}\label{sec:repro}
+% =====================================================================
+
+All values were generated by scripts in \texttt{scripts/} and read directly from
+the following files. Discrimination, specificity and reclassification analyses
+use an identical model specification (elastic net, $\alpha=0.25$, $C=0.1$,
+training-fold imputation); values shared between tables agree to
+$<\!10^{-4}$.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Content & Source file & Script \\
+\midrule
+Tables \ref{tab:disc}, \ref{tab:trend}, \ref{tab:ladder} & \texttt{full\_ladder.csv} & \texttt{full\_ladder.py} \\
+Table \ref{tab:incr} & \texttt{clinical\_metrics\_discrimination.csv} & \texttt{hotlist\_clinical\_metrics.py} \\
+Table \ref{tab:spec} & \texttt{clinical\_metrics\_operating.csv} & \texttt{hotlist\_clinical\_metrics.py} \\
+Table \ref{tab:discord} & \texttt{grade\_discordance.csv} & \texttt{grade\_discordance.py} \\
+Table \ref{tab:windows} & \texttt{hotlist\_windows.csv} & \texttt{discover\_hotlist.py} \\
+Table \ref{tab:external} & \texttt{external\_validation.csv} & \texttt{external\_validate\_hotlist.py} \\
+Comparator AUCs & \texttt{comparators.csv} & \texttt{compute\_comparators.py} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Reproduction checks: WHO and integrated grade AUCs reproduce previously
+published broad-cohort values to within 0.0005; restricted-cohort sizes
+reproduce exactly (387/22, 248/37, 155/43); and arm-level SCNA in the restricted
+cohort reproduces the published figure at 3 years (0.796 vs 0.779).
+
+\end{document}

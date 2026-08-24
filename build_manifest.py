@@ -39,7 +39,7 @@ def main() -> int:
                 "breakpoint_panel_word_tables_fixed.docx (dated 2026-08-04; "
                 "title 'A parsimonious breakpoint panel for meningioma recurrence')"
             ),
-            "true_code_origin": "local repository C:/Users/andre/Desktop/BreakpointsFoundationModel",
+            "true_code_origin": "local development repository BreakpointsFoundationModel (not distributed)",
             "packaged_export": "T1:/deliverables (built 2026-08-22 by scripts/build_deliverables.py)",
             "chatgpt_claim": (
                 "REJECTED. No ChatGPT/OpenAI URL or identifier exists in any source "

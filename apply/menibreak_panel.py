@@ -47,6 +47,7 @@ from sklearn.metrics import roc_auc_score
 
 from src.evaluation.splits import assert_no_patient_leakage, patient_grouped_folds
 from src.features.architecture import build_feature_table, feature_groups
+from src.features.enriched import build_enriched
 from src.features.hotlist import (
     build_window_matrix, consensus_hotlist, select_in_fold,
     windows_to_genomic_coordinates,
@@ -266,6 +267,29 @@ def main() -> int:
     base_feat = build_feature_table(tiles, bps, ar, sample_col="sample_id",
                                     hotspot_windows=hotspots)
     scna_cols = feature_groups(base_feat.columns)["scna"]
+    # Everything in the base table that is not an arm-level SCNA call: breakpoint
+    # architecture and hotspot routing. Part of the enriched model, not of SCNA.
+    arch_hot = [c for c in base_feat.columns if c not in scna_cols]
+
+    # Enriched breakpoint features: amplitude, allelic architecture, density.
+    # `include_bins=False` matches analyses/03_full_ladder.py.
+    enriched = build_enriched(tiles, bps, sample_col="sample_id", include_bins=False)
+
+    # Two enriched blocks depend on optional SEG columns. Say which ones this
+    # cohort actually supports rather than silently scoring a hollow model.
+    has_amp = seg["segment_mean"].notna().any()
+    has_allelic = (seg["track"] == "allelic").any()
+    log.info("enriched features: %d columns | amplitude=%s | allelic=%s",
+             enriched.shape[1], "yes" if has_amp else "NO (no segment_mean)",
+             "yes" if has_allelic else "NO (no LOH/allelic rows)")
+    if not has_amp:
+        log.warning("no `segment_mean` column: amplitude features are empty. The "
+                    "enriched model will be weaker than the published 0.819 (5y). "
+                    "Export log2 ratios if your caller provides them.")
+    if not has_allelic:
+        log.warning("no LOH / allelic-imbalance rows: allelic features are empty. "
+                    "These are ~60 percent of the institutional segment rows and a "
+                    "real part of the enriched model's advantage.")
     windows = build_window_matrix(bps, sample_col="sample_id", n_bins=20,
                                   binary=True, min_prevalence=args.min_prevalence)
     windows.to_csv(outdir / "window_features.csv")
@@ -294,8 +318,10 @@ def main() -> int:
         lab["label"] = is_event.loc[eligible].astype(int)
 
         d = (lab.merge(windows, left_on="tumor_id", right_index=True, how="inner")
-                .merge(base_feat[scna_cols], left_on="tumor_id", right_index=True, how="left"))
-        d = d.fillna({c: 0.0 for c in list(windows.columns) + list(scna_cols)})
+                .merge(base_feat, left_on="tumor_id", right_index=True, how="left")
+                .merge(enriched, left_on="tumor_id", right_index=True, how="left"))
+        d = d.fillna({c: 0.0 for c in (list(windows.columns) + list(scna_cols)
+                                       + arch_hot + list(enriched.columns))})
         if d.empty or d["label"].nunique() < 2:
             log.warning("%dy: too few eligible tumours or one class only; skipped", horizon)
             continue
@@ -304,6 +330,8 @@ def main() -> int:
         groups = d[["patient_id"]].reset_index(drop=True)
         S = d[scna_cols].reset_index(drop=True)
         W = d[[c for c in windows.columns if c in d.columns]].reset_index(drop=True)
+        AH = d[[c for c in arch_hot if c in d.columns]].reset_index(drop=True)
+        E = d[[c for c in enriched.columns if c in d.columns]].reset_index(drop=True)
         intercept = pd.DataFrame({"_intercept": np.ones(len(d))})
 
         ladder = {
@@ -312,6 +340,13 @@ def main() -> int:
                                         n_repeats=args.repeats, seed=11),
             "SCNA + 8-window panel": oof(S, W, y, groups, k=args.k,
                                          n_repeats=args.repeats, seed=11),
+            # The strongest SEG-only model in the report: arm-level calls plus
+            # breakpoint architecture, hotspot routing, amplitude and allelic
+            # features. No window selection (k=0) -- the whole enriched block
+            # enters at once, matching analyses/03_full_ladder.py.
+            "SCNA + enriched breakpoints": oof(pd.concat([S, AH, E], axis=1), None, y,
+                                               groups, k=0, n_repeats=args.repeats,
+                                               seed=11),
         }
         for name, sc in ladder.items():
             ok = np.isfinite(sc)

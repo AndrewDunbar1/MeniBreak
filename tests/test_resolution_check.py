@@ -111,3 +111,56 @@ def test_example_reads_as_suitable(tmp_path, example_segments):
 def test_example_segments_are_well_formed(example_segments):
     assert (example_segments["end"] > example_segments["start"]).all()
     assert (example_segments["start"] > 0).all()
+
+
+# --------------------------------------------------------------------------
+# The enriched model is the strongest SEG-only model in the report. It needs
+# `segment_mean` (amplitude block) and LOH/allelic rows (allelic block), both
+# optional in the input spec -- so the example must carry them or it cannot
+# exercise the model at all.
+# --------------------------------------------------------------------------
+
+def test_example_carries_segment_mean(example_segments):
+    assert "segment_mean" in example_segments.columns
+    assert example_segments["segment_mean"].notna().all()
+
+
+def test_example_carries_an_allelic_track(example_segments):
+    frac = example_segments["event"].isin(["loh", "allelic_imbalance"]).mean()
+    assert frac > 0.4, f"only {frac:.0%} allelic rows; institutional is 63.5%"
+
+
+def test_enriched_model_is_scored_on_the_example(tmp_path, example_segments):
+    """The external ladder must include the enriched model, not just the panel."""
+    import subprocess
+    d = tmp_path / "run"
+    seg = tmp_path / "s.csv"
+    example_segments.to_csv(seg, index=False)
+    oc = pd.DataFrame({
+        "sample_id": sorted(example_segments["sample_id"].unique()),
+    })
+    rng = np.random.default_rng(1)
+    oc["patient_id"] = oc["sample_id"]
+    oc["recurrence_time"] = rng.uniform(0.5, 9.0, len(oc)).round(2)
+    oc["recurrence_event"] = rng.integers(0, 2, len(oc))
+    op = tmp_path / "o.csv"
+    oc.to_csv(op, index=False)
+
+    r = subprocess.run(
+        [sys.executable, str(ROOT / "apply" / "menibreak_panel.py"),
+         "--segments", str(seg), "--outcomes", str(op),
+         "--repeats", "1", "--out", str(d)],
+        capture_output=True, text=True, cwd=ROOT)
+    assert r.returncode == 0, r.stderr[-2000:]
+    perf = pd.read_csv(d / "performance.csv")
+    assert "SCNA + enriched breakpoints" in set(perf["model"])
+
+
+def test_missing_segment_mean_warns_but_still_runs(tmp_path, example_segments):
+    import subprocess
+    seg = tmp_path / "s.csv"
+    example_segments.drop(columns=["segment_mean"]).to_csv(seg, index=False)
+    r = subprocess.run(
+        [sys.executable, str(ROOT / "apply" / "check_resolution.py"),
+         "--segments", str(seg)], capture_output=True, text=True, cwd=ROOT)
+    assert r.returncode == 0

@@ -119,6 +119,25 @@ Writes `performance.csv`, `hotlist_windows.csv` (the windows *your* cohort
 selects, in genomic coordinates) and `window_features.csv`. Every modelling
 choice matches the institutional analysis in `analyses/03_full_ladder.py`.
 
+This scores four models — arm-level SCNA, the panel alone, SCNA + panel, and
+**SCNA + enriched breakpoints**, the strongest SEG-only model in the report
+(0.819 at 5 y, 0.814 at 7 y). The enriched block adds amplitude, allelic
+architecture, breakpoint density and hotspot routing, so it needs two *optional*
+input columns to reach full strength:
+
+| Column | Feeds | Without it |
+|---|---|---|
+| `segment_mean` | amplitude features | amplitude block empty; model weaker |
+| `loh` / `allelic_imbalance` rows | allelic features | allelic block empty; 63.5% of institutional rows are these |
+
+The run logs which blocks your data supports and warns when one is missing, so a
+hollow enriched model is never scored silently.
+
+**Verified faithful.** `analyses/07_verify_external_path.py` rewrites the
+institutional cohort into this generic format and runs it through `apply/`:
+all four models reproduce the published AUCs to within **0.0009**, with exact
+cohort sizes and event counts at 3/5/7 years.
+
 Both scripts run on the bundled synthetic cohort out of the box — start there to
 confirm your install:
 
@@ -152,10 +171,10 @@ regenerate from the same code that produced the report.
 | `apply/validate_fixed_panel.py` | **Validate the published panel on your SEG** — fixed windows, no discovery |
 | `apply/menibreak_panel.py` | **Re-run the discovery method on your SEG** |
 | `src/` | The pipeline package: `harmonization/` (SEG → arms → breakpoints), `features/` (windows, SCNA, enriched), `evaluation/` (patient-grouped folds) |
-| `analyses/` | The six scripts that produced the report tables |
+| `analyses/` | The scripts that produced the report tables, plus `07_verify_external_path.py` which proves `apply/` reproduces them |
 | `results/reference/` | The 13 verified result CSVs (match the report to the printed digit) |
 | `reference/` | Arm references (GRCh37/GRCh38), frozen hotspot windows, and the **frozen panel definition** + the script that derives it |
-| `tests/` | 79 pytest tests — patient-leakage guarantees, tiling, feature isolation, external-input handling, resolution preflight ([details](tests/README.md)) |
+| `tests/` | 83 pytest tests — patient-leakage guarantees, tiling, feature isolation, external-input handling, resolution preflight ([details](tests/README.md)) |
 | `data/example/` | Synthetic cohort + generator, so everything runs offline |
 | `figures/` | Publication figures, [with captions](figures/README.md) |
 | `RESULTS_MANIFEST.yaml` / `.json` | **Machine-readable index**: 725 result records → script → output → value → status ([regenerate](build_manifest.py)) |

@@ -50,7 +50,8 @@ def main() -> int:
             # arm-relative position on 1p.
             start = int(rng.integers(1_000_000, 60_000_000))
             end = int(rng.integers(112_000_000, 119_000_000))
-            seg_rows.append([sid, pid, "1", start, end, "loss"])
+            seg_rows.append([sid, pid, "1", start, end, "loss",
+                             float(np.round(rng.normal(-0.45, 0.12), 3))])
 
         # Background genome-wide events. Counts and sizes are matched to the
         # institutional aCGH cohort the panel was trained on, because the panel
@@ -63,6 +64,13 @@ def main() -> int:
         # (Q1 9, Q3 26); event length median 1.26 Mb, Q1 0.38, Q3 10.5;
         # 47% under 1 Mb. Length is lognormal, fitted in log10 units from that
         # median and IQR (sigma = IQR / 1.349).
+        #
+        # Events also carry `segment_mean` (log2 ratio) and include an allelic
+        # track. Both are optional in the input spec but the enriched model's
+        # amplitude and allelic blocks are built from them, so an example
+        # lacking them cannot exercise the strongest SEG-only model. In the
+        # institutional cohort 63.5% of segment rows are LOH / allelic
+        # imbalance; the copy-number:allelic split below matches that.
         n_bg = int(np.clip(rng.lognormal(np.log(15), 0.60), 1, 120))
         for _ in range(n_bg):
             c = int(rng.integers(1, 23))
@@ -70,7 +78,16 @@ def main() -> int:
             length = int(np.clip(10 ** rng.normal(6.10, 1.07), 20_000, int(0.9 * L)))
             a = int(rng.integers(1_000_000, max(2_000_000, L - length - 1)))
             b = min(L, a + length)
-            seg_rows.append([sid, pid, str(c), a, b, rng.choice(["loss", "gain"])])
+            if rng.random() < 0.635:
+                ev_lab = str(rng.choice(["loh", "allelic_imbalance"], p=[0.82, 0.18]))
+                amp = float(np.round(rng.normal(0.0, 0.05), 3))  # copy-neutral
+            elif rng.random() < 0.5:
+                ev_lab = "loss"
+                amp = float(np.round(rng.normal(-0.40, 0.18), 3))
+            else:
+                ev_lab = "gain"
+                amp = float(np.round(rng.normal(0.38, 0.18), 3))
+            seg_rows.append([sid, pid, str(c), a, b, ev_lab, amp])
 
         # Outcome: baseline hazard + boost if the planted window is present.
         base = 0.10
@@ -84,7 +101,8 @@ def main() -> int:
             ev = 0
         out_rows.append([sid, pid, t, ev])
 
-    seg = pd.DataFrame(seg_rows, columns=["sample_id", "patient_id", "chromosome", "start", "end", "event"])
+    seg = pd.DataFrame(seg_rows, columns=["sample_id", "patient_id", "chromosome",
+                                          "start", "end", "event", "segment_mean"])
     oc = pd.DataFrame(out_rows, columns=["sample_id", "patient_id", "recurrence_time", "recurrence_event"])
     out.mkdir(parents=True, exist_ok=True)
     seg.to_csv(out / "synthetic_segments.csv", index=False)

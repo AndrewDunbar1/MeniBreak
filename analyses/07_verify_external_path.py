@@ -62,7 +62,8 @@ EVENT_MAP = {
 
 # Models the external path can produce. Clinical models need age/mitoses/GTR,
 # which the generic SEG format does not carry by design.
-COMPARABLE = ["Arm-level SCNA", "8-window panel alone", "SCNA + 8-window panel"]
+COMPARABLE = ["Arm-level SCNA", "8-window panel alone", "SCNA + 8-window panel",
+              "SCNA + enriched breakpoints"]
 
 TOL = 0.01  # AUC agreement required to call the path faithful
 
@@ -79,6 +80,12 @@ def export_external_format(outdir: Path) -> tuple[Path, Path]:
         "start": raw["Start"].astype("int64"),
         "end": raw["End"].astype("int64"),
         "event": raw["Event"].map(EVENT_MAP),
+        # Optional columns in the generic spec, and the ones the enriched model's
+        # amplitude block depends on. Omitting them silently produces a hollow
+        # enriched model, so the export must carry them for this check to mean
+        # anything.
+        "segment_mean": pd.to_numeric(raw["Probe_Median"], errors="coerce"),
+        "probe_count": pd.to_numeric(raw["Probes"], errors="coerce"),
     })
     unmapped = raw.loc[seg["event"].isna(), "Event"].unique()
     if len(unmapped):
@@ -96,6 +103,8 @@ def export_external_format(outdir: Path) -> tuple[Path, Path]:
     out.to_csv(op, index=False)
     print(f"exported {len(seg):,} segments / {seg['sample_id'].nunique():,} tumours "
           f"/ {len(out):,} outcome rows")
+    print(f"  segment_mean present on {seg['segment_mean'].notna().mean():.1%} of rows "
+          f"| allelic rows {seg['event'].isin(['loh', 'allelic_imbalance']).mean():.1%}")
     return sp, op
 
 

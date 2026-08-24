@@ -113,7 +113,7 @@ external_use:
     1p window
 tests:
   suite: tests/ (pytest)
-  count: 53
+  count: 88
   covers:
   - patient-grouped folds keep a patient's tumours together
   - every tumour is tested exactly once; splits deterministic under seed
@@ -122,6 +122,8 @@ tests:
   - arm tiling is gapless; centromere-spanning segments split; overlaps reported
   - breakpoint features stay out of the arm-level SCNA feature group
   - exactly five clinical covariates; grade is a comparator, never a predictor
+  - external SEG/outcome inputs are validated (units, vocabularies, columns)
+  - the resolution preflight classifies platforms correctly
   run: pip install -r requirements-dev.txt && python -m pytest tests/ -q
 reproduction_status:
   who_ig_comparators: EXACT — independently reproduced locally

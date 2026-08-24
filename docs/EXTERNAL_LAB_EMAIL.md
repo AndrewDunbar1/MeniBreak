@@ -118,6 +118,11 @@ answer on one prespecified test is worth more than a sweep across nine.
 - Research use only; no clinical claims. Everything runs locally and nothing
   leaves your machine.
 
+**If your team uses a coding assistant** (Claude Code, Codex, Copilot…), point it
+at `AGENTS.md` in the repo root — it contains the whole protocol, the exact input
+schema and the guardrails, so the assistant can set the run up for you. There is
+a machine-readable version alongside it in `VALIDATION_PROTOCOL.yaml`.
+
 Happy to jump on a call for the data formatting step if that is easier — it is
 usually the only fiddly part. And if anything errors, send me the traceback and
 I will turn it around quickly.

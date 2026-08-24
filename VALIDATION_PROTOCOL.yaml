@@ -1,0 +1,240 @@
+# Machine-readable external-validation protocol.
+# Human version: AGENTS.md  |  Narrative walkthrough: docs/QUICKSTART.md
+# An agent can execute this file top to bottom.
+
+protocol: menibreak-external-validation
+version: 1.0.0
+repository: https://github.com/AndrewDunbar1/MeniBreak
+
+objective: >-
+  Validate the fixed nine-window MeniBreak breakpoint hot list on an external
+  meningioma cohort. Primary output is two small aggregate CSVs. No data from the
+  originating institution is required, and no data leaves the local machine.
+
+environment:
+  python: ">=3.9"
+  install: "pip install -r requirements.txt"
+  dev_install: "pip install -r requirements-dev.txt"
+  network_required_after_install: false
+  runtime_estimate: "minutes on a laptop"
+  self_test:
+    description: "Confirm the install before touching real data."
+    commands:
+      - "python data/example/generate_example.py --n 300 --seed 7 --outdir data/example"
+      - "python apply/validate_fixed_panel.py --segments data/example/synthetic_segments.csv --outcomes data/example/synthetic_outcomes.csv --out results/example_fixed"
+      - "python -m pytest tests/ -q"
+    expected:
+      resolution_verdict: SUITABLE
+      auc_rises_with_horizon: true
+      approximate_auc: {3y: 0.61, 5y: 0.64, 7y: 0.72}
+      tests_passing: 88
+
+inputs:
+  segments:
+    path_arg: "--segments"
+    required: true
+    row_meaning: "one ALTERED copy-number segment; do not list neutral regions"
+    columns_required:
+      sample_id:   {type: string, notes: "tumour identifier"}
+      chromosome:  {type: "string|int", accepts: ["1..22", "chr1..chr22"], ignored: ["X", "Y"]}
+      start:       {type: int, unit: bp}
+      end:         {type: int, unit: bp}
+      event:       {type: string, see: event_vocabulary}
+    columns_optional:
+      patient_id:  {type: string, default: sample_id, importance: high,
+                    why: "supply if any patient contributed >1 tumour; CV folds are grouped by patient to prevent leakage"}
+      tumor_id:    {type: string, default: sample_id}
+      segment_mean: {type: float, unlocks: "amplitude features in the enriched model"}
+      probe_count: {type: float}
+      platform:    {type: string}
+      caller:      {type: string}
+      genome_build: {type: string, accepts: [GRCh37, GRCh38]}
+    also_useful:
+      - "loh / allelic_imbalance rows unlock allelic features"
+
+  outcomes:
+    path_arg: "--outcomes"
+    required: true
+    columns_required:
+      sample_id:        {type: string, must_match: segments.sample_id}
+      recurrence_time:  {type: float, unit: YEARS, critical: true}
+      recurrence_event: {type: int, accepts: [0, 1], meaning: "1 = recurrence/progression observed"}
+    columns_optional:
+      patient_id: {type: string, default: sample_id}
+    hard_validation:
+      - rule: "median(recurrence_time) <= 25"
+        raises: true
+        why: >-
+          Months or days do not crash; they silently push nearly every tumour past
+          the horizon and return a meaningless AUC. Convert months/12, days/365.25.
+      - rule: "recurrence_event in {0,1}"
+        raises: true
+      - rule: "recurrence_time >= 0"
+        raises: true
+
+  clinical:
+    path_arg: "--clinical"
+    required: false
+    used_by: "apply/menibreak_panel.py only (optional full ladder)"
+    columns_required: [sample_id]
+    column_groups:
+      clinical_models: {columns: [age, mitoses, gtr, prior_rt, adj_rt], all_required_together: true}
+      grade_comparators: {columns: [who_grade, integrated_grade],
+                          note: "comparator scores ONLY; never predictors inside a genomic model (enforced in code)"}
+      restricted_scope: {columns: [primary, gtr, prior_rt, adj_rt, rt_induced, angiomatous],
+                         all_required_together: true,
+                         note: "a partial set would define a different subset than the published one, so it is refused"}
+    behaviour_on_partial_input: "scores what the supplied columns support; skips the rest with a logged reason; nothing is imputed"
+
+event_vocabulary:
+  canonical: [loss, gain, homozygous_loss, high_copy_gain, loh, allelic_imbalance, neutral]
+  synonyms_auto_mapped:
+    loss: [del, deletion, "cn loss", "-1", loh_loss]
+    gain: [amp, amplification, "cn gain", "1", dup]
+    homozygous_loss: [homdel, "homozygous copy loss", "-2"]
+    high_copy_gain: ["high copy gain", "2"]
+    loh: ["cnn-loh", cnloh]
+    allelic_imbalance: [ai]
+  on_unrecognised_label:
+    behaviour: raise
+    why: "silent coercion to neutral would corrupt the analysis invisibly"
+    remedy: "recode the column, or add the synonym to EVENT_SYNONYMS in apply/menibreak_panel.py"
+
+steps:
+
+  - id: 1_resolution_gate
+    name: "Resolution gate"
+    blocking: true
+    run_before_everything_else: true
+    command: "python apply/check_resolution.py --segments YOUR_segments.csv"
+    rationale: >-
+      Panel windows are ~2.8 Mb. A platform that localises breakpoints coarsely
+      (methylation-derived copy number is the usual case, ~1/9 the change-point
+      density) cannot test this marker; a weak result there measures the assay,
+      not the biology.
+    verdicts:
+      SUITABLE:      {action: proceed}
+      MARGINAL:      {action: proceed, must_report_verdict: true}
+      "TOO COARSE":  {action: STOP, report_back: true,
+                      do_not: "tune parameters or force a number"}
+
+  - id: 2_primary_test
+    name: "Fixed hot-list validation (THE deliverable)"
+    primary: true
+    command: >-
+      python apply/validate_fixed_panel.py --segments YOUR_segments.csv
+      --outcomes YOUR_outcomes.csv --build GRCh37 --out results/validation
+    model:
+      windows: "fixed, from reference/menibreak_panel_v1.csv"
+      panel_set_default: published
+      panel_set_sizes: {published: 9, rule: 11}
+      scoring_default: count
+      scoring_count_meaning: "risk = number of panel windows containing a breakpoint"
+      parameters_fitted_on_external_data: 0
+      learned_from_external_data: none
+    outputs_to_return:
+      - path: results/validation/fixed_panel_performance.csv
+        contains: "AUC of the fixed panel and an arm-level SCNA reference, per horizon"
+      - path: results/validation/panel_window_occupancy.csv
+        contains: "how often each fixed window fires in the cohort"
+        read_first: true
+        why: "a window firing in zero tumours cannot contribute; several silent windows indicates resolution mismatch"
+    patient_level_data_in_outputs: false
+
+  - id: 3_interpretation
+    name: "Interpretation rules"
+    primary_comparator:
+      value: "the arm-level SCNA AUC printed alongside the panel result"
+      why: "computed on the external cohort's own data and folds; carries no bias from the derivation cohort"
+    derivation_cohort_anchor:
+      source: results/reference/fixed_panel_internal_reference.csv
+      panel_published_count: {3y: 0.690, 5y: 0.772, 7y: 0.785}
+      arm_level_scna:        {3y: 0.777, 5y: 0.766, 7y: 0.767}
+      status: OPTIMISTIC_ANCHOR
+      is_a_target: false
+      caveat: >-
+        The nine windows were selected using the derivation cohort's outcomes, so
+        scoring them there is in-sample with respect to window selection. A lower
+        value in the external cohort is the EXPECTED outcome, not a failure. These
+        figures are also not comparable to the dynamic-selection AUCs
+        (0.702/0.735/0.752), which are honest estimates of a different model.
+      see: docs/WHICH_MODEL.md
+
+  - id: 4_fallbacks
+    name: "Escalation ladder"
+    run_only_if: "the primary test is flat"
+    ordered: true
+    do_not_run_first_and_report_best: true
+    ladder:
+      - order: 1
+        command: "python apply/validate_fixed_panel.py --segments … --outcomes … --score refit --out results/validation_refit"
+        tests: "whether the fixed window SET carries signal even if unweighted scoring is not calibrated to this population"
+      - order: 2
+        command: "python apply/validate_fixed_panel.py --segments … --outcomes … --panel-set rule --out results/validation_rule"
+        tests: "the 11-window variant of the list"
+      - order: 3
+        command: "python apply/menibreak_panel.py --segments … --outcomes … --out results/discovery"
+        tests: >-
+          whether the external cohort has recurrent prognostic breakpoint structure
+          at all, rediscovered inside its own folds, and whether it lands near ours
+        look_for: "chr1:118.75-125.00 Mb in results/discovery/hotlist_windows.csv"
+    reporting_requirement: "report every run performed, not only the favourable ones"
+
+  - id: 5_optional_full_ladder
+    name: "Full model ladder"
+    priority: secondary
+    requires: clinical
+    command: >-
+      python apply/menibreak_panel.py --segments YOUR_segments.csv
+      --outcomes YOUR_outcomes.csv --clinical YOUR_clinical.csv --out results/full_ladder
+    produces:
+      models: 9
+      scopes: [broad, restricted]
+      horizons: [3, 5, 7]
+      model_list:
+        - WHO grade
+        - Integrated grade
+        - Arm-level SCNA
+        - 8-window panel alone
+        - SCNA + 8-window panel
+        - SCNA + enriched breakpoints
+        - Clinical + 8-window panel
+        - Clinical + SCNA + 8-window panel
+        - Clinical + SCNA + enriched breakpoints
+    value: "shows whether breakpoints add anything on top of the LAB'S OWN grading and copy-number data"
+    note: "the hot-list result from step 2 remains the headline regardless"
+
+guardrails:
+  prohibited:
+    - "tuning parameters, seeds, horizons or --k to improve an AUC"
+    - "running many configurations and reporting the maximum"
+    - "editing anything under reference/ (defines the frozen panel)"
+    - "editing src/ or analyses/ to change a result"
+    - "committing patient data, SEG/IDAT files, sample-level predictions or identifiers"
+    - "presenting the derivation-cohort anchor as a target to reach"
+    - "adding grade as a predictor inside a genomic model"
+  required:
+    - "report the resolution verdict with every result"
+    - "report the arm-level SCNA comparator alongside every panel figure"
+    - "state which scoring mode and panel set produced each number"
+    - "report a null result plainly"
+
+status_and_scope:
+  validation_state: internal_only
+  external_validations_completed: 0
+  intended_use: research_only
+  clinical_claims: none
+  note: "this run is the first genuine external test of the marker"
+
+key_paths:
+  primary_test: apply/validate_fixed_panel.py
+  resolution_gate: apply/check_resolution.py
+  discovery_and_full_ladder: apply/menibreak_panel.py
+  frozen_panel: reference/menibreak_panel_v1.csv
+  input_schema: docs/INPUT_SPEC.md
+  model_disambiguation: docs/WHICH_MODEL.md
+  limitations: docs/LIMITATIONS.md
+  human_walkthrough: docs/QUICKSTART.md
+  published_results: results/reference/
+  results_index: RESULTS_MANIFEST.yaml
+  tests: "tests/  (python -m pytest tests/ -q)"

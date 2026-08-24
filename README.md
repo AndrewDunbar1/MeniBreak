@@ -85,6 +85,9 @@ This is calibrated on two platforms, so treat it as a decision aid rather than a
 validated instrument — `MARGINAL` means "run both models and compare on your own
 outcomes", not "expect a specific amount of degradation".
 
+Using a coding agent (Claude Code, Codex, …)? Point it at [`AGENTS.md`](AGENTS.md) —
+it carries the whole protocol, the input schema and the guardrails.
+
 There are then **two entry points, answering two different questions** — plus an optional clinical file that unlocks the full ladder.
 
 ### 1. Validate the published panel (fixed windows)
@@ -210,6 +213,7 @@ regenerate from the same code that produced the report.
 | `figures/` | Publication figures, [with captions](figures/README.md) |
 | `RESULTS_MANIFEST.yaml` / `.json` | **Machine-readable index**: 725 result records → script → output → value → status ([regenerate](build_manifest.py)) |
 | `docs/` | **[Which model?](docs/WHICH_MODEL.md)**, input spec, quickstart, the panel, provenance, limitations |
+| `AGENTS.md` / `CLAUDE.md` / `VALIDATION_PROTOCOL.yaml` | **Running this with a coding agent** — full protocol, guardrails, and a machine-parseable version |
 
 ## Provenance
 

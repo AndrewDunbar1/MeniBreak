@@ -119,7 +119,7 @@ Writes `performance.csv`, `hotlist_windows.csv` (the windows *your* cohort
 selects, in genomic coordinates) and `window_features.csv`. Every modelling
 choice matches the institutional analysis in `analyses/03_full_ladder.py`.
 
-This scores four models — arm-level SCNA, the panel alone, SCNA + panel, and
+This scores four SEG-only models — arm-level SCNA, the panel alone, SCNA + panel, and
 **SCNA + enriched breakpoints**, the strongest SEG-only model in the report
 (0.819 at 5 y, 0.814 at 7 y). The enriched block adds amplitude, allelic
 architecture, breakpoint density and hotspot routing, so it needs two *optional*

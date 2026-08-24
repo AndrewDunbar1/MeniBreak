@@ -60,10 +60,21 @@ def main() -> int:
         # "too coarse" under apply/check_resolution.py and give a new user a
         # misleading first impression.
         #
-        # Targets (reports/platform_resolution.csv): 15 events per sample
-        # (Q1 9, Q3 26); event length median 1.26 Mb, Q1 0.38, Q3 10.5;
-        # 47% under 1 Mb. Length is lognormal, fitted in log10 units from that
-        # median and IQR (sigma = IQR / 1.349).
+        # Event LENGTH is matched to the institutional cohort: median 1.26 Mb,
+        # Q1 0.38, Q3 10.5, 47% under 1 Mb. Lognormal in log10 units, sigma
+        # fitted from that IQR (sigma = IQR / 1.349).
+        #
+        # Event COUNT is deliberately below the institutional median of 60 rows
+        # per tumour. This is a documented compromise. Background events here
+        # are placed uniformly at random, whereas real breakpoints recur at
+        # shared loci; at a realistic burden that uniform noise floods the one
+        # planted chr1p signal and the fixed panel's AUC *falls* with horizon,
+        # which is the opposite of what the example exists to demonstrate.
+        #
+        # 25 background events gives ~48 breakpoints/sample: above the panel's
+        # own low-density QC threshold of 40, so the two QC signals agree, while
+        # leaving the planted window recoverable at selection frequency 1.0.
+        # Real cohorts should sit higher (institutional: ~97/sample).
         #
         # Events also carry `segment_mean` (log2 ratio) and include an allelic
         # track. Both are optional in the input spec but the enriched model's
@@ -71,7 +82,7 @@ def main() -> int:
         # lacking them cannot exercise the strongest SEG-only model. In the
         # institutional cohort 63.5% of segment rows are LOH / allelic
         # imbalance; the copy-number:allelic split below matches that.
-        n_bg = int(np.clip(rng.lognormal(np.log(15), 0.60), 1, 120))
+        n_bg = int(np.clip(rng.lognormal(np.log(25), 1.15), 2, 300))
         for _ in range(n_bg):
             c = int(rng.integers(1, 23))
             L = CHR_LEN[c]

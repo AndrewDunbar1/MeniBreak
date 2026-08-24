@@ -1,5 +1,47 @@
 # Changelog
 
+## external-deployment — the full ladder from a generic SEG (2026-08-23)
+
+Makes the repository usable end-to-end by an outside group on their own data.
+
+### Added
+- **`apply/check_resolution.py`** — preflight. Any SEG will run; the question is
+  whether the assay localized breakpoints finely enough for a 2.8 Mb window.
+  Reports median event size against that window and returns `SUITABLE` /
+  `MARGINAL` / `TOO COARSE`. Measured reference points: Agilent aCGH 0.45×
+  (panel trained here), conumee on EPIC 1.80× (panel failed). Calibrated on two
+  platforms — a decision aid, not a validated instrument.
+- **`--clinical`** on `apply/menibreak_panel.py` — unlocks the grade
+  comparators, the three `Clinical +` models and the **Restricted** scope.
+  Grade is a comparator only and is barred from entering any genomic model.
+  The restricted scope requires all six criteria or is refused, and a tumour
+  with a missing criterion is excluded rather than assumed favourable.
+- **`SCNA + enriched breakpoints`** in `apply/` — the strongest SEG-only model
+  in the report (0.819 at 5 y), previously reachable only from `analyses/`.
+- **`analyses/07_verify_external_path.py`** — routes the institutional cohort
+  through the *external* entry point and diffs against `full_ladder.csv`. All
+  9 models × 2 scopes × 3 horizons reproduce to within **0.0031** with exact
+  cohort sizes and event counts.
+
+### Fixed
+- `patient_id` was required in outcomes despite the spec calling it optional.
+- **Follow-up time in months returned AUC 0.085 on 4 events instead of 110,
+  silently.** Implausible units are now rejected with the likely cause named.
+- Tab/semicolon-separated files reported every column as missing; empty segment
+  files raised `KeyError: 'end'`.
+- `analyses/` fell back to a local absolute path when `MENIBREAK_DATA_ROOT` was
+  unset; it now exits with instructions.
+- Provenance manifests recorded an absolute path under a home directory.
+- The synthetic example drew uniform 3–40 Mb blocks — coarser than real array
+  data, and it failed its own resolution preflight. Event sizes now match the
+  institutional cohort, and it carries `segment_mean` and an allelic track so
+  the enriched model is actually exercised.
+
+### Notes
+- Test suite 53 → 88.
+- The example's event *burden* is deliberately below a real cohort's; see the
+  comment in `data/example/generate_example.py` for why.
+
 ## clean-python-release — fixed-panel validation, tests, figure captions (2026-08-23)
 
 Closes the three gaps identified in the post-release audit.
@@ -13,7 +55,7 @@ Closes the three gaps identified in the post-release audit.
   occupancy so a silent window is visible rather than hidden.
 - **`reference/menibreak_panel_v1.csv`** — the frozen panel definition, derived
   reproducibly by `reference/build_panel_definition.py` and re-checked in CI.
-- **`tests/` — 53 pytest tests**, including the patient-leakage guarantees
+- **`tests/` — 88 pytest tests**, including the patient-leakage guarantees
   (patients never split across folds; every tumour tested once; splits
   deterministic; the leakage detector fails a deliberately bad split), arm-tiling
   correctness, and the guards that keep breakpoint information out of the

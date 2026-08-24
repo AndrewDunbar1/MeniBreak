@@ -21,6 +21,7 @@ unchanged.
 | `04_scna_plus_panel.py` | SCNA vs SCNA+panel discrimination; matched-sensitivity operating points | `clinical_metrics_discrimination.csv`, `clinical_metrics_operating.csv` |
 | `05_grade_discordance.py` | Reclassification of grade-discordant tumours | `grade_discordance.csv` |
 | `06_external_validation.py` | External methylation-cohort test (negative) | `external_validation.csv` |
+| `07_verify_external_path.py` | Proves `apply/` reproduces the report: rewrites the institutional cohort into the generic external format, runs it through `apply/menibreak_panel.py`, and diffs all 9 models × 2 scopes × 3 horizons against `full_ladder.csv` (largest \|Δ\| AUC 0.0031) | `_verify_external/external_path_agreement.csv` (gitignored — contains institutional data) |
 | `_hotlist_transport.py` | Helper: transport broad OOF scores to the restricted subset | — |
 
 **To run on your own data instead**, do not use these — use

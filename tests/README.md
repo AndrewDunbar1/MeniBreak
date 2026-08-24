@@ -2,7 +2,7 @@
 
 ```bash
 pip install -r requirements-dev.txt
-python -m pytest tests/ -q          # 53 tests
+python -m pytest tests/ -q          # 88 tests
 ```
 
 These test the shipped pipeline directly. They need no data — every fixture is

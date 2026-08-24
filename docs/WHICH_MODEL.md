@@ -24,18 +24,48 @@ carries recurrence signal**, while **B is the deployable marker that demonstrati
 motivates.** A is internally validated; B is what an external cohort can actually
 test.
 
-## The gap this repository has not yet closed
+## The internal reference for model B
 
-**The internal reference AUC for model B has not been computed.** The derivation
-cohort has never been scored with the frozen nine-window count, so at present an
-external cohort obtains a number for B with no matching internal number to
-compare it against.
+Computed by `analyses/08_fixed_panel_internal_reference.py` on the derivation
+cohort, scored exactly the way `apply/validate_fixed_panel.py` scores an external
+cohort. Full table: `results/reference/fixed_panel_internal_reference.csv`.
 
-`analyses/07_fixed_panel_internal_reference.py` computes exactly that, scored the
-same way `apply/validate_fixed_panel.py` scores an external cohort. It requires
-the institutional dataset (`MENIBREAK_DATA_ROOT`). Until it has been run, treat a
-fixed-panel result as a **standalone measurement**, not as agreement or
-disagreement with a published figure.
+**Published nine-window panel, broad cohort:**
+
+| Scoring | 3 y | 5 y | 7 y |
+|---|---:|---:|---:|
+| Fixed panel, unweighted count (0 fitted params) | 0.690 | **0.772** | **0.785** |
+| Fixed panel, refit coefficients | 0.713 | 0.756 | 0.756 |
+| Arm-level SCNA (same folds, reference) | 0.777 | 0.766 | 0.767 |
+
+Cohort sizes reproduce the published denominators exactly (904/204, 674/264,
+514/296). The frozen count rises with horizon and overtakes arm-level SCNA at
+5 and 7 years — the same pattern as model A, from a marker with **no fitted
+parameters at all**.
+
+### Read this number as an optimistic anchor, not an expectation
+
+⚠️ **It is biased upward, and the bias cannot be removed retrospectively.** The
+count score fits nothing at scoring time, but the *nine windows themselves were
+chosen because they recurred across folds of this cohort's outcomes*. Scoring
+them on that same cohort is therefore in-sample **with respect to window
+selection**.
+
+Two consequences:
+
+1. **Do not read 0.785 as "the frozen panel beats the dynamic 0.752."** Model A's
+   figures are honest estimates (selection happens inside each training fold);
+   model B's derivation figures are not. They are not comparable in that
+   direction either.
+2. **An external cohort scoring below these values is the expected outcome, not a
+   failure.** Treat 0.690 / 0.772 / 0.785 as an upper reference. The genuinely
+   unbiased estimate of what the frozen panel does on data it did not help
+   choose is precisely what an external validation produces — which is why it is
+   worth running.
+
+The honest comparator inside your own cohort is the **arm-level SCNA AUC printed
+alongside your result**, computed on your data and your folds. That comparison is
+internal to your cohort and carries none of this bias.
 
 ## How to report a validation result
 

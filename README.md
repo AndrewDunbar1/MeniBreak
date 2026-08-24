@@ -14,7 +14,9 @@ cohort can run it on its own SEG file.
 > The headline figures below come from a procedure that **re-selects eight
 > windows inside every training fold**. The frozen nine-window panel used for
 > external validation is a *different, more constrained model*, and the two must
-> not be compared to each other.
+> not be compared to each other. The frozen panel's own derivation-cohort values
+> (0.690 / 0.772 / 0.785 at 3/5/7 y) are an **optimistic anchor**, not an
+> expectation — the windows were chosen using that cohort's outcomes.
 
 ---
 

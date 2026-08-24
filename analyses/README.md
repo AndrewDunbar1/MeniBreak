@@ -25,7 +25,7 @@ output is the authoritative ladder. Script `07` is new in this repository.
 | `05_grade_discordance.py` | Reclassification of grade-discordant tumours | `grade_discordance.csv` |
 | `06_external_validation.py` | External methylation-cohort test (negative) | `external_validation.csv` |
 | `07_verify_external_path.py` | Proves `apply/` reproduces the report: rewrites the institutional cohort into the generic external format, runs it through `apply/menibreak_panel.py`, and diffs all 9 models × 2 scopes × 3 horizons against `full_ladder.csv` (largest \|Δ\| AUC 0.0031) | `_verify_external/external_path_agreement.csv` (gitignored — contains institutional data) |
-| `08_fixed_panel_internal_reference.py` | **Internal reference for the FIXED panel** — what the frozen 9/11-window count achieves on the derivation cohort, scored exactly as an external cohort scores it. Not yet run; see [`../docs/WHICH_MODEL.md`](../docs/WHICH_MODEL.md). | `fixed_panel_internal_reference.csv` |
+| `08_fixed_panel_internal_reference.py` | **Internal reference for the FIXED panel** — what the frozen 9/11-window count achieves on the derivation cohort, scored exactly as an external cohort scores it. **Run**; result is an *optimistic anchor* — see [`../docs/WHICH_MODEL.md`](../docs/WHICH_MODEL.md). | `fixed_panel_internal_reference.csv` |
 | `_hotlist_transport.py` | Helper: transport broad OOF scores to the restricted subset | — |
 
 **To run on your own data instead**, do not use these — use

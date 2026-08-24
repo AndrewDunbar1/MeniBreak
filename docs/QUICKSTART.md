@@ -163,6 +163,12 @@ See [`LIMITATIONS.md`](LIMITATIONS.md).
   region (chr1:118.75–125.00 Mb, GRCh37)? That is the panel's most stable
   feature ([`THE_PANEL.md`](THE_PANEL.md)).
 - `SCNA + panel` vs `SCNA` alone is the incremental-value test.
+- For the **fixed panel**, compare against the derivation-cohort anchor in
+  `results/reference/fixed_panel_internal_reference.csv` (0.690 / 0.772 / 0.785 at
+  3/5/7 y) — but read [`WHICH_MODEL.md`](WHICH_MODEL.md) first: that anchor is
+  optimistic because the windows were selected on that cohort, so scoring below
+  it is expected. The unbiased comparison is against the arm-level SCNA figure
+  computed on *your* folds.
 - `SCNA + enriched breakpoints` is the strongest SEG-only model in the report
   (0.819 at 5 y) — worth reporting alongside the parsimonious panel.
 

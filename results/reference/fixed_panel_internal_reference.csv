@@ -1,0 +1,19 @@
+horizon,panel_set,model,n,events,auc
+3,published,Fixed panel (unweighted count),904,204,0.6904
+3,published,Fixed panel (refit coefficients),904,204,0.713
+3,published,Arm-level SCNA (reference),904,204,0.7775
+5,published,Fixed panel (unweighted count),674,264,0.772
+5,published,Fixed panel (refit coefficients),674,264,0.7556
+5,published,Arm-level SCNA (reference),674,264,0.7662
+7,published,Fixed panel (unweighted count),514,296,0.7853
+7,published,Fixed panel (refit coefficients),514,296,0.756
+7,published,Arm-level SCNA (reference),514,296,0.7674
+3,rule,Fixed panel (unweighted count),904,204,0.6865
+3,rule,Fixed panel (refit coefficients),904,204,0.7166
+3,rule,Arm-level SCNA (reference),904,204,0.7775
+5,rule,Fixed panel (unweighted count),674,264,0.7687
+5,rule,Fixed panel (refit coefficients),674,264,0.755
+5,rule,Arm-level SCNA (reference),674,264,0.7662
+7,rule,Fixed panel (unweighted count),514,296,0.754
+7,rule,Fixed panel (refit coefficients),514,296,0.7728
+7,rule,Arm-level SCNA (reference),514,296,0.7674

@@ -154,7 +154,7 @@ def main() -> int:
         scores: dict[str, np.ndarray] = {}
         if args.score == "count":
             # Fully frozen: unweighted count of panel windows present.
-            scores["Fixed panel (count, 0 fitted params)"] = P.sum(axis=1).to_numpy(float)
+            scores["Fixed panel (unweighted count)"] = P.sum(axis=1).to_numpy(float)
         else:
             scores["Fixed panel (refit coefficients)"] = oof(
                 pd.DataFrame({"_intercept": np.ones(len(d))}), P, y, groups,

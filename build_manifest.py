@@ -91,7 +91,7 @@ def main() -> int:
             "analyses/07_fixed_panel_internal_reference.py": {
                 "outputs": ["fixed_panel_internal_reference.csv"],
                 "produces": "internal reference AUC for the FIXED panel, scored as an external cohort scores it",
-                "status": "NOT YET RUN - requires MENIBREAK_DATA_ROOT; see docs/WHICH_MODEL.md"},
+                "status": "RUN - see results/reference/fixed_panel_internal_reference.csv"},
         },
         "external_use": {
             "input": "a generic SEG (sample_id, chromosome, start, end, event) + outcomes",
@@ -111,8 +111,9 @@ def main() -> int:
                         "This is a DIFFERENT model from the one that produced the reported "
                         "0.702/0.735/0.752 AUCs, which re-selected 8 windows inside every "
                         "training fold. Do not compare a fixed-panel result against those "
-                        "figures. The internal reference for the fixed panel has not yet been "
-                        "computed; run analyses/07_fixed_panel_internal_reference.py. "
+                        "figures. The internal reference for the fixed panel is in "
+                        "results/reference/fixed_panel_internal_reference.csv, and is an "
+                        "OPTIMISTIC anchor (windows were selected on that cohort). "
                         "See docs/WHICH_MODEL.md."),
                 },
                 "apply/menibreak_panel.py": {
@@ -191,6 +192,18 @@ def main() -> int:
                                      "generating_script": "analyses/_hotlist_transport.py",
                                      "description": "Broad out-of-fold scores transported to the restricted subset",
                                      "records": records("hotlist_transport.csv")},
+            "fixed_panel_internal_reference": {
+                "source_file": "results/reference/fixed_panel_internal_reference.csv",
+                "generating_script": "analyses/08_fixed_panel_internal_reference.py",
+                "description": "Derivation-cohort AUC for the FROZEN panel, scored as an external cohort scores it",
+                "CAVEAT": (
+                    "OPTIMISTIC ANCHOR, not an expectation. The count score fits no "
+                    "parameters at scoring time, but the windows were selected using this "
+                    "cohort's outcomes, so these values are in-sample with respect to "
+                    "window selection. An external cohort scoring below them is expected. "
+                    "They are NOT comparable to the 0.702/0.735/0.752 dynamic-selection "
+                    "figures, which are honest estimates. See docs/WHICH_MODEL.md."),
+                "records": records("fixed_panel_internal_reference.csv")},
             "feature_set_search": {"source_file": "results/reference/maximize_search.csv",
                                    "generating_script": "analyses/03_full_ladder.py",
                                    "records": records("maximize_search.csv")},

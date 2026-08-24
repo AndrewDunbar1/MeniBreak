@@ -117,7 +117,7 @@ def main() -> int:
             S = d[scna_cols].reset_index(drop=True)
 
             scores = {
-                "Fixed panel (count, 0 fitted params)": P.sum(axis=1).to_numpy(float),
+                "Fixed panel (unweighted count)": P.sum(axis=1).to_numpy(float),
                 "Fixed panel (refit coefficients)": oof(
                     pd.DataFrame({"_intercept": np.ones(len(d))}), P, y, groups,
                     k=P.shape[1], n_repeats=args.repeats, seed=11),
@@ -143,8 +143,12 @@ def main() -> int:
         print(res.pivot_table(index=["panel_set", "horizon"], columns="model", values="auc")
               .to_string(float_format=lambda x: f"{x:.3f}"))
     print(f"\nsaved {out}")
-    print("\nThis is the number an external cohort's fixed-panel result should be "
-          "compared against — NOT the 0.702/0.735/0.752 dynamic-selection figures.")
+    print("\nRead these as an OPTIMISTIC ANCHOR, not an expectation. The count score\n"
+          "fits nothing at scoring time, but the windows were chosen using this\n"
+          "cohort's outcomes, so these values are in-sample with respect to window\n"
+          "selection. An external cohort scoring below them is the expected outcome.\n"
+          "They are also NOT comparable to the 0.702/0.735/0.752 dynamic-selection\n"
+          "figures, which are honest estimates. See docs/WHICH_MODEL.md.")
     return 0
 
 

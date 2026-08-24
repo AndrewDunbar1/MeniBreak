@@ -90,7 +90,7 @@
         "fixed_panel_internal_reference.csv"
       ],
       "produces": "internal reference AUC for the FIXED panel, scored as an external cohort scores it",
-      "status": "NOT YET RUN - requires MENIBREAK_DATA_ROOT; see docs/WHICH_MODEL.md"
+      "status": "RUN - see results/reference/fixed_panel_internal_reference.csv"
     }
   },
   "external_use": {
@@ -110,7 +110,7 @@
           "published": 9,
           "rule": 11
         },
-        "IMPORTANT": "This is a DIFFERENT model from the one that produced the reported 0.702/0.735/0.752 AUCs, which re-selected 8 windows inside every training fold. Do not compare a fixed-panel result against those figures. The internal reference for the fixed panel has not yet been computed; run analyses/07_fixed_panel_internal_reference.py. See docs/WHICH_MODEL.md."
+        "IMPORTANT": "This is a DIFFERENT model from the one that produced the reported 0.702/0.735/0.752 AUCs, which re-selected 8 windows inside every training fold. Do not compare a fixed-panel result against those figures. The internal reference for the fixed panel is in results/reference/fixed_panel_internal_reference.csv, and is an OPTIMISTIC anchor (windows were selected on that cohort). See docs/WHICH_MODEL.md."
       },
       "apply/menibreak_panel.py": {
         "question": "Does the discovery METHOD find prognostic windows in my cohort?",
@@ -6587,6 +6587,158 @@
           "delta": 0.0786960132890364,
           "locked_scna": 0.7205,
           "locked_full": 0.795
+        }
+      ]
+    },
+    "fixed_panel_internal_reference": {
+      "source_file": "results/reference/fixed_panel_internal_reference.csv",
+      "generating_script": "analyses/08_fixed_panel_internal_reference.py",
+      "description": "Derivation-cohort AUC for the FROZEN panel, scored as an external cohort scores it",
+      "CAVEAT": "OPTIMISTIC ANCHOR, not an expectation. The count score fits no parameters at scoring time, but the windows were selected using this cohort's outcomes, so these values are in-sample with respect to window selection. An external cohort scoring below them is expected. They are NOT comparable to the 0.702/0.735/0.752 dynamic-selection figures, which are honest estimates. See docs/WHICH_MODEL.md.",
+      "records": [
+        {
+          "horizon": 3,
+          "panel_set": "published",
+          "model": "Fixed panel (unweighted count)",
+          "n": 904,
+          "events": 204,
+          "auc": 0.6904
+        },
+        {
+          "horizon": 3,
+          "panel_set": "published",
+          "model": "Fixed panel (refit coefficients)",
+          "n": 904,
+          "events": 204,
+          "auc": 0.713
+        },
+        {
+          "horizon": 3,
+          "panel_set": "published",
+          "model": "Arm-level SCNA (reference)",
+          "n": 904,
+          "events": 204,
+          "auc": 0.7775
+        },
+        {
+          "horizon": 5,
+          "panel_set": "published",
+          "model": "Fixed panel (unweighted count)",
+          "n": 674,
+          "events": 264,
+          "auc": 0.772
+        },
+        {
+          "horizon": 5,
+          "panel_set": "published",
+          "model": "Fixed panel (refit coefficients)",
+          "n": 674,
+          "events": 264,
+          "auc": 0.7556
+        },
+        {
+          "horizon": 5,
+          "panel_set": "published",
+          "model": "Arm-level SCNA (reference)",
+          "n": 674,
+          "events": 264,
+          "auc": 0.7662
+        },
+        {
+          "horizon": 7,
+          "panel_set": "published",
+          "model": "Fixed panel (unweighted count)",
+          "n": 514,
+          "events": 296,
+          "auc": 0.7853
+        },
+        {
+          "horizon": 7,
+          "panel_set": "published",
+          "model": "Fixed panel (refit coefficients)",
+          "n": 514,
+          "events": 296,
+          "auc": 0.756
+        },
+        {
+          "horizon": 7,
+          "panel_set": "published",
+          "model": "Arm-level SCNA (reference)",
+          "n": 514,
+          "events": 296,
+          "auc": 0.7674
+        },
+        {
+          "horizon": 3,
+          "panel_set": "rule",
+          "model": "Fixed panel (unweighted count)",
+          "n": 904,
+          "events": 204,
+          "auc": 0.6865
+        },
+        {
+          "horizon": 3,
+          "panel_set": "rule",
+          "model": "Fixed panel (refit coefficients)",
+          "n": 904,
+          "events": 204,
+          "auc": 0.7166
+        },
+        {
+          "horizon": 3,
+          "panel_set": "rule",
+          "model": "Arm-level SCNA (reference)",
+          "n": 904,
+          "events": 204,
+          "auc": 0.7775
+        },
+        {
+          "horizon": 5,
+          "panel_set": "rule",
+          "model": "Fixed panel (unweighted count)",
+          "n": 674,
+          "events": 264,
+          "auc": 0.7687
+        },
+        {
+          "horizon": 5,
+          "panel_set": "rule",
+          "model": "Fixed panel (refit coefficients)",
+          "n": 674,
+          "events": 264,
+          "auc": 0.755
+        },
+        {
+          "horizon": 5,
+          "panel_set": "rule",
+          "model": "Arm-level SCNA (reference)",
+          "n": 674,
+          "events": 264,
+          "auc": 0.7662
+        },
+        {
+          "horizon": 7,
+          "panel_set": "rule",
+          "model": "Fixed panel (unweighted count)",
+          "n": 514,
+          "events": 296,
+          "auc": 0.754
+        },
+        {
+          "horizon": 7,
+          "panel_set": "rule",
+          "model": "Fixed panel (refit coefficients)",
+          "n": 514,
+          "events": 296,
+          "auc": 0.7728
+        },
+        {
+          "horizon": 7,
+          "panel_set": "rule",
+          "model": "Arm-level SCNA (reference)",
+          "n": 514,
+          "events": 296,
+          "auc": 0.7674
         }
       ]
     },

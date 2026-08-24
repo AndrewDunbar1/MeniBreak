@@ -47,6 +47,7 @@ from sklearn.metrics import roc_auc_score
 
 from src.evaluation.splits import assert_no_patient_leakage, patient_grouped_folds
 from src.features.architecture import build_feature_table, feature_groups
+from src.features.clinical import CLINICAL_FEATURES, assert_no_excluded_covariates
 from src.features.enriched import build_enriched
 from src.features.hotlist import (
     build_window_matrix, consensus_hotlist, select_in_fold,
@@ -142,6 +143,70 @@ def load_outcomes_table(path: str | Path) -> pd.DataFrame:
     log.info("outcomes: %d tumours, %d patients, median follow-up %.1f y, %d events",
              len(oc), oc["patient_id"].nunique(), median_t, int((e == 1).sum()))
     return oc
+
+
+#: Restricted-cohort eligibility, verbatim from src/features/clinical.py.
+#: All six must hold. Reproduced here against plain external column names.
+RESTRICTED_EXTERNAL = {
+    "primary": 1.0, "gtr": 1.0, "prior_rt": 0.0,
+    "adj_rt": 0.0, "rt_induced": 0.0, "angiomatous": 0.0,
+}
+
+
+def load_external_clinical(path: str | Path) -> pd.DataFrame:
+    """Optional clinical covariates, grades and restricted-cohort flags.
+
+    Everything except `sample_id` is optional; whichever models the supplied
+    columns can support are scored and the rest are skipped with a note. See
+    docs/INPUT_SPEC.md.
+
+    `who_grade` and `integrated_grade` are read as *comparator scores only*.
+    They are never predictors inside the genomic models -- that separation is
+    the point of the whole comparison, so it is enforced here rather than left
+    to the caller (src.features.clinical.DELIBERATELY_EXCLUDED).
+    """
+    df = pd.read_csv(path)
+    if "sample_id" not in df.columns:
+        raise ValueError(
+            f"{path}: clinical table needs a `sample_id` column matching the "
+            f"segments file. Found: {sorted(df.columns)[:12]}. See docs/INPUT_SPEC.md.")
+
+    out = pd.DataFrame({"tumor_id": df["sample_id"].astype("string")})
+    num = lambda c: pd.to_numeric(df[c], errors="coerce") if c in df.columns else np.nan
+
+    out["age"] = num("age")
+    # log1p compresses the long right tail of mitotic counts, as specified.
+    mit = num("mitoses")
+    out["log1p_mitoses"] = np.log1p(mit) if mit is not np.nan else np.nan
+    for c in ("gtr", "prior_rt", "adj_rt"):
+        out[c] = num(c)
+    for c in ("who_grade", "integrated_grade"):
+        out[c] = num(c)
+
+    have = [c for c in CLINICAL_FEATURES if c in df.columns
+            or (c == "log1p_mitoses" and "mitoses" in df.columns)]
+    missing = [c for c in CLINICAL_FEATURES if c not in have]
+
+    # Restricted cohort: every criterion must be present, else the subset would
+    # silently mean something other than the published definition.
+    crit_cols = [c for c in RESTRICTED_EXTERNAL if c in df.columns]
+    if len(crit_cols) == len(RESTRICTED_EXTERNAL):
+        flag = pd.Series(True, index=df.index)
+        for col, want in RESTRICTED_EXTERNAL.items():
+            flag &= pd.to_numeric(df[col], errors="coerce").eq(want)
+        out["is_restricted"] = flag.fillna(False)
+        log.info("restricted cohort: %d of %d tumours meet all %d criteria",
+                 int(out["is_restricted"].sum()), len(out), len(RESTRICTED_EXTERNAL))
+    else:
+        out["is_restricted"] = False
+        absent = sorted(set(RESTRICTED_EXTERNAL) - set(crit_cols))
+        log.warning("restricted-cohort scope skipped: missing criteria %s. "
+                    "All six are required (primary, gtr, prior_rt, adj_rt, "
+                    "rt_induced, angiomatous).", absent)
+
+    log.info("clinical: %d tumours | covariates present %s | missing %s",
+             len(out), have or "none", missing or "none")
+    return out.dropna(subset=["tumor_id"]).drop_duplicates("tumor_id").set_index("tumor_id")
 
 
 def adapt_segments(path: str | Path, build: str = "GRCh37") -> pd.DataFrame:
@@ -241,6 +306,11 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--segments", required=True)
     ap.add_argument("--outcomes", required=True)
+    ap.add_argument("--clinical", default=None,
+                    help="optional CSV: sample_id + age/mitoses/gtr/prior_rt/adj_rt, "
+                         "who_grade/integrated_grade, and the six restricted-cohort "
+                         "criteria. Unlocks the grade comparators, the Clinical+ "
+                         "models and the Restricted scope. See docs/INPUT_SPEC.md.")
     ap.add_argument("--build", default="GRCh37", choices=["GRCh37", "GRCh38"])
     ap.add_argument("--horizons", nargs="+", type=int, default=[3, 5, 7])
     ap.add_argument("--k", type=int, default=8, help="windows selected per fold")
@@ -309,6 +379,12 @@ def main() -> int:
     # outcomes -> per-horizon labels (strict fixed-horizon endpoint)
     oc = load_outcomes_table(args.outcomes)
 
+    clin = load_external_clinical(args.clinical) if args.clinical else None
+    has_clin = clin is not None and clin[CLINICAL_FEATURES].notna().any().all()
+    if clin is not None and not has_clin:
+        log.warning("clinical file supplied but not all of %s are usable; the "
+                    "Clinical+ models will be skipped.", CLINICAL_FEATURES)
+
     rows, all_windows = [], []
     for horizon in args.horizons:
         t, e = oc["recurrence_time"], oc["recurrence_event"]
@@ -320,6 +396,11 @@ def main() -> int:
         d = (lab.merge(windows, left_on="tumor_id", right_index=True, how="inner")
                 .merge(base_feat, left_on="tumor_id", right_index=True, how="left")
                 .merge(enriched, left_on="tumor_id", right_index=True, how="left"))
+        if clin is not None:
+            d = d.merge(clin, left_on="tumor_id", right_index=True, how="left")
+            d["is_restricted"] = d["is_restricted"].fillna(False)
+        else:
+            d["is_restricted"] = False
         d = d.fillna({c: 0.0 for c in (list(windows.columns) + list(scna_cols)
                                        + arch_hot + list(enriched.columns))})
         if d.empty or d["label"].nunique() < 2:
@@ -348,15 +429,48 @@ def main() -> int:
                                                groups, k=0, n_repeats=args.repeats,
                                                seed=11),
         }
-        for name, sc in ladder.items():
-            ok = np.isfinite(sc)
-            if ok.sum() < 20 or len(np.unique(y[ok])) < 2:
+
+        # Grade comparators enter as scores, never as predictors above.
+        if clin is not None:
+            for label, col in (("WHO grade", "who_grade"),
+                               ("Integrated grade", "integrated_grade")):
+                if col in d.columns and d[col].notna().any():
+                    ladder[label] = pd.to_numeric(d[col], errors="coerce").to_numpy(float)
+
+        if has_clin:
+            C = d[CLINICAL_FEATURES].reset_index(drop=True)
+            assert_no_excluded_covariates(C.columns)
+            ladder["Clinical + 8-window panel"] = oof(
+                C, W, y, groups, k=args.k, n_repeats=args.repeats, seed=11)
+            ladder["Clinical + SCNA + 8-window panel"] = oof(
+                pd.concat([S, C], axis=1), W, y, groups, k=args.k,
+                n_repeats=args.repeats, seed=11)
+            ladder["Clinical + SCNA + enriched breakpoints"] = oof(
+                pd.concat([S, AH, E, C], axis=1), None, y, groups, k=0,
+                n_repeats=args.repeats, seed=11)
+        # Restricted figures use the locked project's transport design: models are
+        # fitted on the broad cohort with patient-grouped out-of-fold prediction
+        # and those honest scores are then subset. Nothing is refitted inside the
+        # restricted subset -- it has far too few events to support it.
+        scopes = [("Broad", np.ones(len(d), bool))]
+        if bool(d["is_restricted"].any()):
+            scopes.append(("Restricted", d["is_restricted"].to_numpy(bool)))
+
+        for scope, mask in scopes:
+            yy = y[mask]
+            if len(np.unique(yy)) < 2:
                 continue
-            auc = roc_auc_score(y[ok], sc[ok])
-            rows.append({"horizon": horizon, "n": int(ok.sum()),
-                         "events": int(y[ok].sum()), "model": name, "auc": round(auc, 4)})
-            log.info("%dy  %-24s AUC=%.3f  (n=%d, events=%d)",
-                     horizon, name, auc, int(ok.sum()), int(y[ok].sum()))
+            for name, sc in ladder.items():
+                s = np.asarray(sc, float)[mask]
+                ok = np.isfinite(s)
+                if ok.sum() < 20 or len(np.unique(yy[ok])) < 2:
+                    continue
+                auc = roc_auc_score(yy[ok], s[ok])
+                rows.append({"horizon": horizon, "scope": scope, "model": name,
+                             "n": int(ok.sum()), "events": int(yy[ok].sum()),
+                             "auc": round(auc, 4)})
+                log.info("%dy %-11s %-40s AUC=%.3f  (n=%d, events=%d)",
+                         horizon, scope, name, auc, int(ok.sum()), int(yy[ok].sum()))
 
         cons = per_fold_consensus(W, y, groups, k=args.k, n_repeats=args.repeats, seed=11)
         if not cons.empty:

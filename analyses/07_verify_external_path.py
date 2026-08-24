@@ -14,10 +14,10 @@ handed to `apply/menibreak_panel.py`, and the resulting ladder compared against
 If a column mapping, an event vocabulary or a coordinate convention differs
 between the two paths, the AUCs separate here.
 
-Only the Broad scope is checked. The restricted cohort is defined by clinical
-criteria (GTR, primary, no prior RT, not radiation-induced, not angiomatous)
-that the generic SEG format does not carry, so an external cohort cannot
-reproduce it without supplying those flags itself.
+With `--clinical` supplied the whole ladder is checked: nine models across both
+the Broad and Restricted scopes at 3, 5 and 7 years. The restricted subset is
+reached the same way the report reaches it -- broad-cohort out-of-fold scores
+subset to eligible tumours, never refitted.
 
 Requires MENIBREAK_DATA_ROOT. Not runnable by external users -- it exists to
 prove the path they *do* use is faithful.
@@ -49,6 +49,17 @@ if not DATA_ROOT:
 H = Path(DATA_ROOT)
 MASTER_SEG = H / "01_RAW_DATA/institutional/meningioma_masterseg_ALL_2026.txt"
 OUTCOMES = H / "03_ANALYSIS_READY_DATA/outcomes.csv"
+CLINICAL_SRC = H / "03_ANALYSIS_READY_DATA/ml_breakpoint_model_dataset_2026.csv"
+
+#: Institutional analysis-ready column -> the plain external name. Only these
+#: are read: no other column of the analysis-ready table enters the export, so
+#: an outcome or identifier cannot ride along by being adjacent in the file.
+CLINICAL_EXPORT = {
+    "age": "age", "mitoses": "mitoses",
+    "gtr_num": "gtr", "prior_rt_num": "prior_rt", "adj_rt_num": "adj_rt",
+    "who_grade": "who_grade", "integrated_grade": "integrated_grade",
+    "primary": "primary", "rt_induced": "rt_induced", "angiomatous": "angiomatous",
+}
 
 # Institutional Event vocabulary -> the documented generic vocabulary.
 EVENT_MAP = {
@@ -62,13 +73,13 @@ EVENT_MAP = {
 
 # Models the external path can produce. Clinical models need age/mitoses/GTR,
 # which the generic SEG format does not carry by design.
-COMPARABLE = ["Arm-level SCNA", "8-window panel alone", "SCNA + 8-window panel",
-              "SCNA + enriched breakpoints"]
+# With --clinical supplied, the external path can produce the whole ladder.
+COMPARABLE = None  # None = compare every model the run emits
 
 TOL = 0.01  # AUC agreement required to call the path faithful
 
 
-def export_external_format(outdir: Path) -> tuple[Path, Path]:
+def export_external_format(outdir: Path) -> tuple[Path, Path, Path]:
     """Rewrite the institutional data as a generic external submission."""
     raw = pd.read_csv(MASTER_SEG, sep="\t", low_memory=False)
 
@@ -98,25 +109,39 @@ def export_external_format(outdir: Path) -> tuple[Path, Path]:
     seg = seg[seg["sample_id"].isin(keep)]
     out = out[out["sample_id"].astype(str).isin(keep)]
 
+    # Clinical covariates, grade comparators and restricted-cohort criteria,
+    # rewritten under plain external column names.
+    src = pd.read_csv(CLINICAL_SRC, low_memory=False)
+    key = "cg" if "cg" in src.columns else "tumor_id"
+    clin = pd.DataFrame({"sample_id": src[key].astype(str)})
+    for internal, external in CLINICAL_EXPORT.items():
+        clin[external] = (pd.to_numeric(src[internal], errors="coerce")
+                          if internal in src.columns else pd.NA)
+    clin = clin[clin["sample_id"].isin(keep)].drop_duplicates("sample_id")
+
     sp, op = outdir / "external_segments.csv", outdir / "external_outcomes.csv"
+    cp = outdir / "external_clinical.csv"
     seg.to_csv(sp, index=False)
     out.to_csv(op, index=False)
+    clin.to_csv(cp, index=False)
+    absent = [e for i, e in CLINICAL_EXPORT.items() if clin[e].isna().all()]
+    print(f"  clinical rows {len(clin):,} | columns with no data: {absent or 'none'}")
     print(f"exported {len(seg):,} segments / {seg['sample_id'].nunique():,} tumours "
           f"/ {len(out):,} outcome rows")
     print(f"  segment_mean present on {seg['segment_mean'].notna().mean():.1%} of rows "
           f"| allelic rows {seg['event'].isin(['loh', 'allelic_imbalance']).mean():.1%}")
-    return sp, op
+    return sp, op, cp
 
 
 def main() -> int:
     work = ROOT / "results" / "_verify_external"
     work.mkdir(parents=True, exist_ok=True)
-    sp, op = export_external_format(work)
+    sp, op, cp = export_external_format(work)
 
     print("\nrunning apply/menibreak_panel.py (the external entry point)...")
     r = subprocess.run(
         [sys.executable, str(ROOT / "apply" / "menibreak_panel.py"),
-         "--segments", str(sp), "--outcomes", str(op),
+         "--segments", str(sp), "--outcomes", str(op), "--clinical", str(cp),
          "--k", "8", "--repeats", "5", "--out", str(work / "run")],
         cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
@@ -125,26 +150,25 @@ def main() -> int:
 
     got = pd.read_csv(work / "run" / "performance.csv")
     ref = pd.read_csv(ROOT / "results" / "reference" / "full_ladder.csv")
-    ref = ref[ref["scope"] == "Broad"]
 
     rows = []
     for _, g in got.iterrows():
         m = str(g["model"])
-        if m not in COMPARABLE:
-            continue
-        hit = ref[(ref["model"] == m) & (ref["horizon"] == g["horizon"])]
+        hit = ref[(ref["model"] == m) & (ref["horizon"] == g["horizon"])
+                  & (ref["scope"] == g["scope"])]
         if hit.empty:
             continue
         pub = float(hit["auc"].iloc[0])
         rows.append({
-            "horizon": int(g["horizon"]), "model": m,
+            "horizon": int(g["horizon"]), "scope": str(g["scope"]), "model": m,
             "published": round(pub, 4), "via_apply": round(float(g["auc"]), 4),
             "delta": round(float(g["auc"]) - pub, 4),
             "n_pub": int(hit["n"].iloc[0]), "n_apply": int(g["n"]),
             "events_pub": int(hit["events"].iloc[0]), "events_apply": int(g["events"]),
         })
 
-    res = pd.DataFrame(rows).sort_values(["horizon", "model"])
+    res = pd.DataFrame(rows).sort_values(["scope", "horizon", "model"],
+                                    ascending=[False, True, True])
     print("\n=== PUBLISHED vs REPRODUCED THROUGH apply/ ===")
     print(res.to_string(index=False))
 

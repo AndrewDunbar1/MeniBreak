@@ -77,7 +77,7 @@ This is calibrated on two platforms, so treat it as a decision aid rather than a
 validated instrument — `MARGINAL` means "run both models and compare on your own
 outcomes", not "expect a specific amount of degradation".
 
-There are then **two entry points, answering two different questions.**
+There are then **two entry points, answering two different questions** — plus an optional clinical file that unlocks the full ladder.
 
 ### 1. Validate the published panel (fixed windows)
 
@@ -133,10 +133,33 @@ input columns to reach full strength:
 The run logs which blocks your data supports and warns when one is missing, so a
 hollow enriched model is never scored silently.
 
+### 3. Add clinical data for the full ladder
+
+Supply `--clinical` and you get the complete nine-model report on your own
+cohort — the grade comparators, the three `Clinical +` models, and the
+**Restricted** scope:
+
+```bash
+python apply/menibreak_panel.py \
+    --segments YOUR_segments.csv --outcomes YOUR_outcomes.csv \
+    --clinical YOUR_clinical.csv --out results/your_cohort_full
+```
+
+Only `sample_id` is required in that file. `age`/`mitoses`/`gtr`/`prior_rt`/
+`adj_rt` unlock the `Clinical +` models; `who_grade`/`integrated_grade` unlock
+the comparators; `primary`/`rt_induced`/`angiomatous` (plus `gtr`/`prior_rt`/
+`adj_rt`) unlock the Restricted scope. Partial input scores whatever it can and
+says what it skipped. Full schema: [`docs/INPUT_SPEC.md`](docs/INPUT_SPEC.md).
+
+Grade is read as a **comparator only** and never enters a genomic model as a
+predictor — enforced in code, not left to the caller.
+
 **Verified faithful.** `analyses/07_verify_external_path.py` rewrites the
-institutional cohort into this generic format and runs it through `apply/`:
-all four models reproduce the published AUCs to within **0.0009**, with exact
-cohort sizes and event counts at 3/5/7 years.
+institutional cohort into these generic formats and runs it through `apply/`.
+All **9 models × 2 scopes × 3 horizons = 54 figures** reproduce the published
+AUCs to within **0.0031**, with exact cohort sizes (904/674/514 broad,
+387/248/155 restricted) and event counts (204/264/296 and 22/37/43). The 0.857
+headline lands at 0.8573.
 
 Both scripts run on the bundled synthetic cohort out of the box — start there to
 confirm your install:
@@ -174,7 +197,7 @@ regenerate from the same code that produced the report.
 | `analyses/` | The scripts that produced the report tables, plus `07_verify_external_path.py` which proves `apply/` reproduces them |
 | `results/reference/` | The 13 verified result CSVs (match the report to the printed digit) |
 | `reference/` | Arm references (GRCh37/GRCh38), frozen hotspot windows, and the **frozen panel definition** + the script that derives it |
-| `tests/` | 83 pytest tests — patient-leakage guarantees, tiling, feature isolation, external-input handling, resolution preflight ([details](tests/README.md)) |
+| `tests/` | 88 pytest tests — patient-leakage guarantees, tiling, feature isolation, external-input handling, resolution preflight ([details](tests/README.md)) |
 | `data/example/` | Synthetic cohort + generator, so everything runs offline |
 | `figures/` | Publication figures, [with captions](figures/README.md) |
 | `RESULTS_MANIFEST.yaml` / `.json` | **Machine-readable index**: 725 result records → script → output → value → status ([regenerate](build_manifest.py)) |

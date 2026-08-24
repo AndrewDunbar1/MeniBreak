@@ -164,3 +164,82 @@ def test_missing_segment_mean_warns_but_still_runs(tmp_path, example_segments):
         [sys.executable, str(ROOT / "apply" / "check_resolution.py"),
          "--segments", str(seg)], capture_output=True, text=True, cwd=ROOT)
     assert r.returncode == 0
+
+
+# --------------------------------------------------------------------------
+# Clinical input: unlocks the grade comparators, the Clinical+ models and the
+# Restricted scope. Partial input must degrade to a documented subset of the
+# ladder rather than silently redefining the restricted cohort.
+# --------------------------------------------------------------------------
+
+def _clinical_for(seg: pd.DataFrame, *, full: bool = True) -> pd.DataFrame:
+    ids = sorted(seg["sample_id"].unique())
+    rng = np.random.default_rng(5)
+    c = pd.DataFrame({"sample_id": ids})
+    c["age"] = rng.integers(30, 85, len(ids))
+    c["mitoses"] = rng.integers(0, 8, len(ids))
+    c["gtr"] = rng.integers(0, 2, len(ids))
+    c["prior_rt"] = 0
+    c["adj_rt"] = rng.integers(0, 2, len(ids))
+    c["who_grade"] = rng.integers(1, 4, len(ids))
+    c["integrated_grade"] = rng.integers(1, 4, len(ids))
+    if full:
+        c["primary"] = 1
+        c["rt_induced"] = 0
+        c["angiomatous"] = 0
+    return c
+
+
+def _run_panel(tmp_path, seg_df, clin_df=None, repeats="1"):
+    import subprocess
+    seg = tmp_path / "s.csv"; seg_df.to_csv(seg, index=False)
+    ids = sorted(seg_df["sample_id"].unique())
+    rng = np.random.default_rng(2)
+    oc = pd.DataFrame({"sample_id": ids, "patient_id": ids,
+                       "recurrence_time": rng.uniform(0.5, 9.0, len(ids)).round(2),
+                       "recurrence_event": rng.integers(0, 2, len(ids))})
+    op = tmp_path / "o.csv"; oc.to_csv(op, index=False)
+    cmd = [sys.executable, str(ROOT / "apply" / "menibreak_panel.py"),
+           "--segments", str(seg), "--outcomes", str(op),
+           "--repeats", repeats, "--out", str(tmp_path / "run")]
+    if clin_df is not None:
+        cp = tmp_path / "c.csv"; clin_df.to_csv(cp, index=False)
+        cmd += ["--clinical", str(cp)]
+    r = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
+    assert r.returncode == 0, r.stderr[-2000:]
+    return pd.read_csv(tmp_path / "run" / "performance.csv"), r.stderr
+
+
+def test_clinical_unlocks_the_full_ladder(tmp_path, example_segments):
+    perf, _ = _run_panel(tmp_path, example_segments, _clinical_for(example_segments))
+    models = set(perf["model"])
+    for m in ("WHO grade", "Integrated grade", "Clinical + 8-window panel",
+              "Clinical + SCNA + 8-window panel",
+              "Clinical + SCNA + enriched breakpoints"):
+        assert m in models, f"{m} missing from {sorted(models)}"
+
+
+def test_clinical_unlocks_the_restricted_scope(tmp_path, example_segments):
+    perf, _ = _run_panel(tmp_path, example_segments, _clinical_for(example_segments))
+    assert "Restricted" in set(perf["scope"])
+
+
+def test_without_clinical_only_seg_models_and_broad(tmp_path, example_segments):
+    perf, _ = _run_panel(tmp_path, example_segments, None)
+    assert set(perf["scope"]) == {"Broad"}
+    assert not any(m.startswith("Clinical") for m in perf["model"])
+
+
+def test_partial_restricted_criteria_refuses_the_scope(tmp_path, example_segments):
+    """Five of six criteria must not silently produce a different subset."""
+    clin = _clinical_for(example_segments, full=True).drop(columns=["angiomatous"])
+    perf, err = _run_panel(tmp_path, example_segments, clin)
+    assert set(perf["scope"]) == {"Broad"}
+    assert "angiomatous" in err
+
+
+def test_grade_is_a_comparator_not_a_predictor(tmp_path, example_segments):
+    """who_grade / integrated_grade must never enter a genomic model."""
+    from src.features.clinical import DELIBERATELY_EXCLUDED
+    assert "who_grade" in DELIBERATELY_EXCLUDED
+    assert "integrated_grade" in DELIBERATELY_EXCLUDED

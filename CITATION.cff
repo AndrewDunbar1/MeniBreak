@@ -8,7 +8,7 @@ abstract: >-
   folds, and evaluates them with patient-grouped out-of-fold cross-validation.
 type: software
 version: 1.0.0
-date-released: 2026-08-23
+date-released: 2026-08-24
 authors:
   - family-names: Dunbar
     given-names: Andrew R.

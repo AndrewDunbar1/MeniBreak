@@ -52,6 +52,35 @@ Then send back the two files in `results/validation/`:
 `fixed_panel_performance.csv` and `panel_window_occupancy.csv`. Neither contains
 patient-level data.
 
+## Easiest route: let a coding assistant set it up
+
+If anyone on your team uses **Claude Code** or **Codex**, they can hand the whole
+thing over. Both read their instructions from the repo automatically — Claude Code
+picks up `CLAUDE.md`, Codex picks up `AGENTS.md`, and both are already in the repo
+root. There is nothing to configure.
+
+```bash
+git clone https://github.com/AndrewDunbar1/MeniBreak.git
+cd MeniBreak
+claude          # or: codex
+```
+
+Then paste something like:
+
+> Read AGENTS.md and VALIDATION_PROTOCOL.yaml. Our copy-number data is currently
+> in <describe your format, e.g. "one .seg file per sample from ASCAT">, and our
+> outcomes are in <file>. Convert them to the required segments.csv and
+> outcomes.csv, run the resolution check, then run the primary fixed-panel
+> validation and show me the results.
+
+The data conversion is the only fiddly step and this is where an assistant helps
+most. The instructions also carry the guardrails — most importantly that it must
+not tune anything to chase a better AUC, and must stop and tell you if the
+resolution check fails — so you get a clean result rather than an optimised one.
+
+`VALIDATION_PROTOCOL.yaml` is the same protocol in machine-readable form if you
+would rather script it.
+
 ## How to read your number
 
 For reference, on our derivation cohort the fixed hot list scores **0.690 / 0.772
@@ -118,11 +147,6 @@ answer on one prespecified test is worth more than a sweep across nine.
 - Research use only; no clinical claims. Everything runs locally and nothing
   leaves your machine.
 
-**If your team uses a coding assistant** (Claude Code, Codex, Copilot…), point it
-at `AGENTS.md` in the repo root — it contains the whole protocol, the exact input
-schema and the guardrails, so the assistant can set the run up for you. There is
-a machine-readable version alongside it in `VALIDATION_PROTOCOL.yaml`.
-
 Happy to jump on a call for the data formatting step if that is easier — it is
 usually the only fiddly part. And if anything errors, send me the traceback and
 I will turn it around quickly.
@@ -140,3 +164,5 @@ Best,
   tighter first email.
 - Their run needs no institutional data and takes minutes on a laptop.
 - `docs/QUICKSTART.md` is the long-form version of this email if they want it.
+- The coding-assistant section is a convenience, not a requirement — the manual
+  commands above it stand alone. Cut it if the lab is unlikely to use those tools.

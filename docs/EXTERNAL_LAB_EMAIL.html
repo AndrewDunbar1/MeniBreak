@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8"><title>External validation request - meningioma breakpoint panel (one command, ~30 min)</title></head>
+<body style="font:14px/1.55 Segoe UI,Arial,sans-serif;color:#1f2328;max-width:680px;">
+<p style="font-size:12px;color:#6b7280;margin:0 0 4px;">Subject line:</p>
+<p style="margin:0 0 18px;font-weight:600;">External validation request - meningioma breakpoint panel (one command, ~30 min)</p>
+<hr style="border:0;border-top:1px solid #e3e6ea;margin:0 0 18px;">
+<p style="margin:10px 0;">Hi [NAME],</p>
+<p style="margin:10px 0;">Thanks again for agreeing to look at this. Below is everything you need; the actual work is a single command once your data is in two simple CSVs.</p>
+<p style="margin:10px 0;">THE CLAIM WE WOULD LIKE TESTED. In our institutional meningioma cohort, *where* copy-number breakpoints fall carries recurrence-risk information beyond WHO grade, integrated grade, and arm-level copy-number alteration - and unlike those markers, it gets stronger at longer horizons. We have distilled that into a fixed nine-window &quot;breakpoint hot list&quot;. <b>That hot list is the one thing we are asking you to test.</b> Everything else is secondary.</p>
+<p style="margin:10px 0;">Repo (I have shared access): <a href="https://github.com/AndrewDunbar1/MeniBreak">https://github.com/AndrewDunbar1/MeniBreak</a></p>
+<h3 style="font:600 14px/1.4 Segoe UI,Arial,sans-serif;color:#1a3a5c;margin:22px 0 8px;">WHAT YOU NEED</h3>
+<p style="margin:10px 0;">Two CSVs - no clinical data required to start:</p>
+<p style="margin:10px 0;">segments.csv   sample_id, chromosome, start, end, event outcomes.csv   sample_id, recurrence_time (<b>IN YEARS</b>), recurrence_event (1/0)</p>
+<p style="margin:10px 0;">Full schema, including optional columns: docs/INPUT_SPEC.md in the repo.</p>
+<h3 style="font:600 14px/1.4 Segoe UI,Arial,sans-serif;color:#1a3a5c;margin:22px 0 8px;">THE RUN</h3>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;">git clone https://github.com/AndrewDunbar1/MeniBreak.git &amp;&amp; cd MeniBreak
+pip install -r requirements.txt
+
+# 1. Is your assay fine-grained enough for this to mean anything?
+python apply/check_resolution.py --segments YOUR_segments.csv
+
+# 2. The test: the fixed hot list, scored with ZERO parameters fitted
+#    on your data
+python apply/validate_fixed_panel.py \
+    --segments YOUR_segments.csv \
+    --outcomes YOUR_outcomes.csv \
+    --out results/validation</pre>
+<p style="margin:10px 0;"><b>Please run step 1 first and stop if it says TOO COARSE.</b> The windows are ~2.8 Mb, so a platform that localises breakpoints coarsely (methylation-derived copy number is the usual case) cannot test this - a weak result there tells us about the assay, not the biology. If it says SUITABLE or MARGINAL, continue.</p>
+<p style="margin:10px 0;">Then send back the two files in results/validation/ : fixed_panel_performance.csv and panel_window_occupancy.csv. Neither contains patient-level data.</p>
+<h3 style="font:600 14px/1.4 Segoe UI,Arial,sans-serif;color:#1a3a5c;margin:22px 0 8px;">EASIEST ROUTE: LET A CODING ASSISTANT SET IT UP</h3>
+<p style="margin:10px 0;">If anyone on your team uses Claude Code or Codex, they can hand the whole thing over. Both read their instructions from the repo automatically - Claude Code picks up CLAUDE.md, Codex picks up AGENTS.md, and both are already in the repo root. There is nothing to configure.</p>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;">git clone https://github.com/AndrewDunbar1/MeniBreak.git
+cd MeniBreak
+claude          # or: codex</pre>
+<p style="margin:10px 0;">Then paste something like:</p>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;">&quot;Read AGENTS.md and VALIDATION_PROTOCOL.yaml. Our copy-number data is
+currently in &lt;describe your format, e.g. one .seg file per sample from
+ASCAT&gt;, and our outcomes are in &lt;file&gt;. Convert them to the required
+segments.csv and outcomes.csv, run the resolution check, then run the
+primary fixed-panel validation and show me the results.&quot;</pre>
+<p style="margin:10px 0;">The data conversion is the only fiddly step and this is where an assistant helps most. The instructions also carry the guardrails - most importantly that it must not tune anything to chase a better AUC, and must stop and tell you if the resolution check fails - so you get a clean result rather than an optimised one.</p>
+<p style="margin:10px 0;">VALIDATION_PROTOCOL.yaml is the same protocol in machine-readable form if you would rather script it.</p>
+<h3 style="font:600 14px/1.4 Segoe UI,Arial,sans-serif;color:#1a3a5c;margin:22px 0 8px;">HOW TO READ YOUR NUMBER</h3>
+<p style="margin:10px 0;">For reference, on our derivation cohort the fixed hot list scores 0.690 / 0.772 / 0.785 at 3 / 5 / 7 years, against arm-level SCNA at 0.777 / 0.766 / 0.767.</p>
+<p style="margin:10px 0;">One important caveat, so nobody over-reads it: those are an <b>OPTIMISTIC ANCHOR</b>, not an expectation. The nine windows were chosen using our cohort&#x27;s outcomes, so scoring them there is partly circular. <b>A lower number in your cohort is the expected result, not a failure.</b> The clean comparison is the arm-level SCNA figure the tool prints alongside your result - that one is computed on your data and your folds, and carries none of our bias. Details in docs/WHICH_MODEL.md.</p>
+<h3 style="font:600 14px/1.4 Segoe UI,Arial,sans-serif;color:#1a3a5c;margin:22px 0 8px;">IF THE HOT LIST DOESN&#x27;T HOLD UP</h3>
+<p style="margin:10px 0;">That is a real and publishable answer, and we would rather know. If it comes out flat, there are three progressively looser fallbacks, in this order:</p>
+<p style="margin:10px 0;">1. --score refit</p>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;"> Same fixed windows, but let the weights be re-fitted on your cohort. Tests
+ whether the window SET is informative even if our unweighted scoring is not
+ calibrated to your population.</pre>
+<p style="margin:10px 0;">2. --panel-set rule</p>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;"> An 11-window variant of the list.</pre>
+<p style="margin:10px 0;">3. python apply/menibreak_panel.py ...</p>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;"> Ignore our list entirely and let the method rediscover windows inside your
+ own cross-validation folds. This answers the broader question: does YOUR
+ cohort have recurrent prognostic breakpoint structure at all, and does it
+ land anywhere near ours (we would look for chr1:118.75-125.00 Mb)?</pre>
+<p style="margin:10px 0;">Only worth doing if the primary test is unconvincing - we would rather have a clean negative on the primary test than a positive found after four attempts.</p>
+<h3 style="font:600 14px/1.4 Segoe UI,Arial,sans-serif;color:#1a3a5c;margin:22px 0 8px;">OPTIONAL AND SECONDARY: THE FULL MODEL LADDER</h3>
+<p style="margin:10px 0;">Entirely separate from the pass/fail question above, and only if you have the clinical fields to hand: adding a third CSV runs every model in our report on your cohort at once - the two grade comparators, arm-level SCNA, the hot list, the combined SCNA + hot list, and the larger clinical + SCNA + breakpoint models (9 models x broad/restricted x 3 horizons).</p>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;">python apply/menibreak_panel.py \
+    --segments YOUR_segments.csv --outcomes YOUR_outcomes.csv \
+    --clinical YOUR_clinical.csv --out results/full_ladder</pre>
+<p style="margin:10px 0;">clinical.csv needs only sample_id; every other column is optional and the tool scores whatever your columns support, logging what it skipped. The useful ones are age, mitoses, gtr, prior_rt, adj_rt (unlock the clinical models); who_grade, integrated_grade (unlock the grade comparators); and primary, rt_induced, angiomatous (unlock the restricted surgical subset). Full table in docs/INPUT_SPEC.md section 3.</p>
+<p style="margin:10px 0;">Grade is read as a comparator only - it never enters a genomic model as a predictor, which is enforced in code rather than left to convention.</p>
+<p style="margin:10px 0;">This is the interesting exploratory run: it shows whether breakpoints add anything on top of YOUR grading and copy-number data, not just on top of ours. But please treat the hot-list result above as the headline either way - a clean answer on one prespecified test is worth more than a sweep across nine.</p>
+<h3 style="font:600 14px/1.4 Segoe UI,Arial,sans-serif;color:#1a3a5c;margin:22px 0 8px;">TWO THINGS TO KEEP IN MIND</h3>
+<p style="margin:10px 0;">- These are internally validated, single-institution results. Yours is the</p>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;">first genuine external test - that is exactly why we are asking.</pre>
+<p style="margin:10px 0;">- Research use only; no clinical claims. Everything runs locally and nothing</p>
+<pre style="font:13px/1.5 Consolas,Menlo,monospace;background:#f5f6f8;border-left:3px solid #c8ccd2;padding:10px 12px;margin:10px 0;white-space:pre-wrap;">leaves your machine.</pre>
+<p style="margin:10px 0;">Happy to jump on a call for the data formatting step if that is easier - it is usually the only fiddly part. And if anything errors, send me the traceback and I will turn it around quickly.</p>
+<p style="margin:10px 0;">Best, [YOUR NAME]</p>
+</body></html>

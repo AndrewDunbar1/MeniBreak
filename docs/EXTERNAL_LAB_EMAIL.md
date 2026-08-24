@@ -156,6 +156,15 @@ Best,
 
 ---
 
+### Paste-ready versions
+
+- `EXTERNAL_LAB_EMAIL.txt` — plain text; paste straight into Outlook.
+- `EXTERNAL_LAB_EMAIL.html` — open in a browser, Ctrl/Cmd-A, Ctrl/Cmd-C, paste
+  into Outlook to keep headings, bold and the command blocks.
+
+This `.md` file is the source of record; regenerate the other two from it if you
+edit the wording.
+
 ### Notes for the sender (delete before sending)
 
 - Confirm repo access is shared before sending.

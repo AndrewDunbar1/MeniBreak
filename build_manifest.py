@@ -88,10 +88,15 @@ def main() -> int:
                 "produces": "reclassification of grade-discordant tumours"},
             "analyses/06_external_validation.py": {"outputs": ["external_validation.csv"],
                 "produces": "external methylation-cohort validation (negative)"},
+            "analyses/07_fixed_panel_internal_reference.py": {
+                "outputs": ["fixed_panel_internal_reference.csv"],
+                "produces": "internal reference AUC for the FIXED panel, scored as an external cohort scores it",
+                "status": "NOT YET RUN - requires MENIBREAK_DATA_ROOT; see docs/WHICH_MODEL.md"},
         },
         "external_use": {
             "input": "a generic SEG (sample_id, chromosome, start, end, event) + outcomes",
             "spec": "docs/INPUT_SPEC.md",
+            "which_model": "docs/WHICH_MODEL.md",
             "quickstart": "docs/QUICKSTART.md",
             "entry_points": {
                 "apply/validate_fixed_panel.py": {
@@ -102,6 +107,13 @@ def main() -> int:
                         "refit": "fixed windows as features, coefficients refit under patient-grouped CV (validates the window set)",
                     },
                     "panel_sets": {"published": 9, "rule": 11},
+                    "IMPORTANT": (
+                        "This is a DIFFERENT model from the one that produced the reported "
+                        "0.702/0.735/0.752 AUCs, which re-selected 8 windows inside every "
+                        "training fold. Do not compare a fixed-panel result against those "
+                        "figures. The internal reference for the fixed panel has not yet been "
+                        "computed; run analyses/07_fixed_panel_internal_reference.py. "
+                        "See docs/WHICH_MODEL.md."),
                 },
                 "apply/menibreak_panel.py": {
                     "question": "Does the discovery METHOD find prognostic windows in my cohort?",

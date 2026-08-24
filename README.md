@@ -1,14 +1,20 @@
 # MeniBreak — a parsimonious breakpoint panel for meningioma recurrence
 
-Eight binary **breakpoint** indicators at fixed genomic coordinates — *where*
-copy-number change points fall, not just *which* arms are gained or lost — that
-carry recurrence-risk information beyond WHO grade, integrated grade, and
-arm-level copy-number alteration (SCNA), and that hold up at the long (5–7 year)
-horizons where the conventional markers fade.
+A small number of binary **breakpoint** indicators — *where* copy-number change
+points fall, not just *which* arms are gained or lost — carry recurrence-risk
+information beyond WHO grade, integrated grade, and arm-level copy-number
+alteration (SCNA), and hold up at the long (5–7 year) horizons where the
+conventional markers fade.
 
-This repository contains **the actual code that produced every number in the
-MeniBreak report**, the verified result tables, and a tested entry point so an
-external cohort can **run the same method on its own SEG file**.
+This repository contains **the code that produced every number in the MeniBreak
+report**, the verified result tables, and tested entry points so an external
+cohort can run it on its own SEG file.
+
+> **Before quoting any AUC, read [`docs/WHICH_MODEL.md`](docs/WHICH_MODEL.md).**
+> The headline figures below come from a procedure that **re-selects eight
+> windows inside every training fold**. The frozen nine-window panel used for
+> external validation is a *different, more constrained model*, and the two must
+> not be compared to each other.
 
 ---
 
@@ -19,7 +25,7 @@ external cohort can **run the same method on its own SEG file**.
 | WHO grade | 1 | 0.656 | 0.647 |
 | Integrated grade | 1 | 0.735 | 0.782 |
 | Arm-level SCNA | 47 | 0.766 | 0.766 |
-| **8-window panel alone** | **8** | **0.735** | **0.753** |
+| **8-window panel alone** *(windows re-selected per fold)* | **8** | **0.735** | **0.753** |
 | SCNA + panel | 55 | 0.797 | 0.847 |
 | Clinical + SCNA + panel | 60 | 0.843 | 0.843 |
 | Clinical + SCNA + enriched breakpoints | 102 | 0.857 | 0.836 |
@@ -34,7 +40,7 @@ the only marker that *improves* with horizon. The chr1p pericentromeric window
 1. **Internal validation only.** Every AUC here is patient-grouped out-of-fold
    within a single institutional cohort. Validation in an independent cohort of
    comparable copy-number resolution is the necessary next step, and is exactly
-   what [`apply/menibreak_panel.py`](apply/menibreak_panel.py) exists to enable.
+   what [`apply/validate_fixed_panel.py`](apply/validate_fixed_panel.py) exists to enable.
    See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).
 2. **The restricted cohort has 22/37/43 events** at 3/5/7 years — its largest
    effects are its least precise.
@@ -194,14 +200,14 @@ regenerate from the same code that produced the report.
 | `apply/validate_fixed_panel.py` | **Validate the published panel on your SEG** — fixed windows, no discovery |
 | `apply/menibreak_panel.py` | **Re-run the discovery method on your SEG** |
 | `src/` | The pipeline package: `harmonization/` (SEG → arms → breakpoints), `features/` (windows, SCNA, enriched), `evaluation/` (patient-grouped folds) |
-| `analyses/` | The scripts that produced the report tables, plus `07_verify_external_path.py` which proves `apply/` reproduces them |
+| `analyses/` | The scripts that produced the report tables, plus `07_verify_external_path.py` (proves `apply/` reproduces them) and `08_fixed_panel_internal_reference.py` |
 | `results/reference/` | The 13 verified result CSVs (match the report to the printed digit) |
 | `reference/` | Arm references (GRCh37/GRCh38), frozen hotspot windows, and the **frozen panel definition** + the script that derives it |
 | `tests/` | 88 pytest tests — patient-leakage guarantees, tiling, feature isolation, external-input handling, resolution preflight ([details](tests/README.md)) |
 | `data/example/` | Synthetic cohort + generator, so everything runs offline |
 | `figures/` | Publication figures, [with captions](figures/README.md) |
 | `RESULTS_MANIFEST.yaml` / `.json` | **Machine-readable index**: 725 result records → script → output → value → status ([regenerate](build_manifest.py)) |
-| `docs/` | Input spec, quickstart, the panel, provenance, limitations |
+| `docs/` | **[Which model?](docs/WHICH_MODEL.md)**, input spec, quickstart, the panel, provenance, limitations |
 
 ## Provenance
 

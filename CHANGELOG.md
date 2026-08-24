@@ -1,5 +1,38 @@
 # Changelog
 
+## clean-python-release — model-definition clarity (2026-08-24)
+
+Addresses findings from an independent review pass.
+
+### Added
+- **`docs/WHICH_MODEL.md`** — states plainly that "the panel" denotes three
+  different objects: (A) the dynamic top-8 procedure that produced the reported
+  0.702/0.735/0.752, (B) the frozen 9-window published panel used for external
+  validation, and (C) the 11-window rule variant. A fixed-panel result must not
+  be compared against the model-A figures.
+- **`analyses/07_fixed_panel_internal_reference.py`** — computes the missing
+  yardstick: what the frozen panel achieves on the derivation cohort, scored
+  exactly as `apply/validate_fixed_panel.py` scores an external cohort. Requires
+  `MENIBREAK_DATA_ROOT`; until it is run, a fixed-panel result is a standalone
+  measurement with no matching internal number.
+
+### Fixed
+- README opened by describing the eight indicators as being "at fixed genomic
+  coordinates", which contradicted the documented per-fold selection. The
+  headline table now marks the panel row as *windows re-selected per fold*.
+- `openpyxl` was missing from `requirements.txt` although
+  `analyses/06_external_validation.py` reads an `.xlsx` clinical table.
+- `analyses/README.md` no longer implies scripts 01-06 are untouched originals in
+  a stronger sense than the evidence supports; `03_full_ladder.py` was itself
+  written to complete combinations earlier analyses left partial, as its own
+  docstring says.
+
+### Verified, not changed
+- Test count is **53** (pytest collects and runs 53); the manifest agrees.
+- The committed synthetic cohort is **byte-identical** to what
+  `data/example/generate_example.py --seed 7` regenerates, so it is not stale.
+  It intentionally trips the low-resolution QC warning: the toy data is sparse by
+  design and the warning firing demonstrates the guard works.
 ## external-deployment — the full ladder from a generic SEG (2026-08-23)
 
 Makes the repository usable end-to-end by an outside group on their own data.

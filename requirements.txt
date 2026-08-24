@@ -4,3 +4,4 @@ numpy>=1.23
 scipy>=1.9
 scikit-learn>=1.2,<1.10   # elastic-net LogisticRegression(penalty="elasticnet") API
 pyyaml>=6.0
+openpyxl>=3.1             # analyses/06_external_validation.py reads an .xlsx clinical table

@@ -217,10 +217,4 @@ regenerate from the same code that produced the report.
 
 ## Provenance
 
-The report numbers originate in the local repository
-`BreakpointsFoundationModel`, packaged to a drive export and reassembled here —
-**not** a ChatGPT thread (a prior claim that the code lived only in an online
-workspace was checked against every file's metadata and rejected). Full audit:
-[`docs/PROVENANCE.md`](docs/PROVENANCE.md).
-
 Research use only. See [`LICENSE.md`](LICENSE.md) and [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).

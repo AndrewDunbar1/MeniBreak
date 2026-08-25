@@ -1,7 +1,7 @@
 # MeniBreak — a parsimonious breakpoint panel for meningioma recurrence
 
-A small number of binary **breakpoint** indicators — *where* copy-number change
-points fall, not just *which* arms are gained or lost — carry recurrence-risk
+A small number of binary **breakpoint** indicators, *where* copy-number change
+points fall, not just *which* arms are gained or lost, carry recurrence-risk
 information beyond WHO grade, integrated grade, and arm-level copy-number
 alteration (SCNA), and hold up at the long (5–7 year) horizons where the
 conventional markers fade.
